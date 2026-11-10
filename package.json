@@ -1,0 +1,9 @@
+{
+  "name": "family-budget",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Family income/expense app with LINE OA",
+  "main": "server.js",
+  "scripts": { "start": "node server.js", "test": "node test/test.js" },
+  "engines": { "node": ">=18" }
+}
