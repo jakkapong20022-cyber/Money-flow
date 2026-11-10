@@ -69,8 +69,29 @@ async function refreshCats() { S.cats = await api('/categories'); }
 function logout(silent) { stopLive(); localStorage.removeItem('fb_token'); if (!silent && S.token) fetch('/api/logout', { method: 'POST', headers: { Authorization: 'Bearer ' + S.token } }); S.token = null; S.me = null; go('auth'); }
 
 /* ---------- router ---------- */
-const NAV = [['home', '🏠', 'หน้าแรก'], ['cats', '🗂️', 'หมวดหมู่'], ['add', '＋', 'เพิ่ม'], ['debts', '💳', 'หนี้สิน'], ['reports', '📊', 'รายงาน']];
-const nav = () => `<nav class="bn">${NAV.map(([k, ic, lb]) => `<button class="${k === 'add' ? 'plus' : ''} ${S.view === k || (k === 'home' && S.view === 'member') ? 'on' : ''}" data-act="nav" data-v="${k}"><b>${ic}</b>${lb}</button>`).join('')}</nav>`;
+/* ---------- icon set (neon line icons, inherit colour) ---------- */
+const IC_P = {
+  home: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5"/>',
+  grid: '<rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  card: '<rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M2.5 10h19M6.5 15h4"/>',
+  chart: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+  users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18.5 14.2A6.5 6.5 0 0 1 21.5 20"/>',
+  bell: '<path d="M6 9a6 6 0 1 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9z"/><path d="M10 20a2 2 0 0 0 4 0"/>',
+  chat: '<path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-8l-5 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/><path d="M8 10h8M8 13h5"/>',
+  scan: '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M8 9h8M8 12h8M8 15h5"/>',
+  download: '<path d="M12 3v12M7 11l5 5 5-5"/><path d="M4 20h16"/>',
+  cloud: '<path d="M7 18a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 18 10a4 4 0 0 1-.5 8z"/><path d="M12 11v6M9.5 14.5 12 17l2.5-2.5"/>',
+  key: '<circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M16 7l3 3M14 9l2 2"/>',
+  cal: '<rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/>',
+};
+const ico = (k, cls = '') => `<svg class="ico ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC_P[k] || ''}</svg>`;
+// settings card header: neon icon chip + title (+ optional right-side html)
+const sh = (k, title, right = '', tone = 'green') => `<div class="sh"><span class="chipi ${tone}">${ico(k)}</span><h3>${title}</h3>${right ? `<span class="shr">${right}</span>` : ''}</div>`;
+
+const NAV = [['home', 'home', 'หน้าแรก'], ['cats', 'grid', 'หมวดหมู่'], ['add', 'plus', 'เพิ่ม'], ['debts', 'card', 'หนี้สิน'], ['reports', 'chart', 'รายงาน']];
+const nav = () => `<nav class="bn">${NAV.map(([k, ic, lb]) => `<button class="${k === 'add' ? 'plus' : ''} ${S.view === k || (k === 'home' && S.view === 'member') ? 'on' : ''}" data-act="nav" data-v="${k}"><b>${ico(ic)}</b>${lb}</button>`).join('')}</nav>`;
 async function go(view, opts = {}) {
   S.view = view; Object.assign(S, opts);
   await render();
@@ -80,7 +101,7 @@ async function render() {
   const noNav = ['auth', 'setup'];
   try {
     const html = await V[S.view]();
-    app.innerHTML = noNav.includes(S.view) ? html : `${S.view === 'settings' ? '' : '<button class="gear" data-act="nav" data-v="settings" aria-label="ตั้งค่า">⚙️</button>'}<main>${html}</main>${nav()}`;
+    app.innerHTML = noNav.includes(S.view) ? html : `${S.view === 'settings' ? '' : `<button class="gear" data-act="nav" data-v="settings" aria-label="ตั้งค่า">${ico('gear')}</button>`}<main>${html}</main>${nav()}`;
     AFTER[S.view]?.();
   } catch (e) { toast(e.message, 'err'); }
 }
@@ -332,16 +353,16 @@ V.settings = async () => {
   const f = S.me.family, L = f.line, n = f.notify;
   const tog = (k, l, sub) => `<div class="tog"><div>${l}<div class="muted small">${sub}</div></div><button class="sw ${n[k] ? 'on' : ''}" data-act="notif" data-k="${k}"></button></div>`;
   return `<div class="bar-top"><h2 class="grow">ตั้งค่า</h2></div>
-  <div class="card set"><h3>ครอบครัว</h3>
+  <div class="card set">${sh('users','ครอบครัว')}
     <label class="f" style="margin-top:0">ชื่อครอบครัว</label><input class="i" id="stName" value="${esc(f.name)}">
     <label class="f">สกุลเงิน</label><select class="i" id="stCur">${['฿', '$', '€', '£', '¥', '₹'].map(c => `<option ${f.currency === c ? 'selected' : ''}>${c}</option>`).join('')}</select>
     <div class="gap"></div><button class="btn ghost sm" data-act="stsave">บันทึก</button></div>
-  <div class="card set"><h3>สมาชิกและงบประมาณ</h3>
+  <div class="card set">${sh('users','สมาชิกและงบประมาณ','','blue')}
     ${S.me.members.map(m => `<div class="row" style="padding:8px 0;border-top:1px solid var(--line)"><span class="mini" style="width:36px;height:36px">${avHTML(m.avatar)}</span><div class="grow"><b>${esc(m.name)}</b><div class="muted small">งบ ${m.budget ? cur() + fmt(m.budget) : '—'} · ${m.linked ? '<span class="green">เชื่อม LINE แล้ว</span>' : 'ยังไม่เชื่อม LINE'}</div></div><button class="ib" data-act="memedit" data-id="${m.id}">✎</button><button class="ib" data-act="memdel" data-id="${m.id}">🗑</button></div>`).join('')}
     <div class="gap"></div><button class="btn ghost sm" data-act="memadd">＋ เพิ่มสมาชิก</button></div>
-  <div class="card set"><h3>การแจ้งเตือน (ผ่าน LINE)</h3>
+  <div class="card set">${sh('bell','การแจ้งเตือน (ผ่าน LINE)','','orange')}
     ${tog('onAdd', 'แจ้งเมื่อมีรายการใหม่', 'ส่งถึงสมาชิกคนอื่นที่เชื่อม LINE')}${tog('budget', 'เตือนใกล้เกินงบ', 'เมื่อใช้ถึง 80% และ 100% ของงบรายเดือน')}${tog('daily', 'สรุปรายวัน 20:00 น.', 'ยอดรับ-จ่ายของวันนี้')}</div>
-  ${window.LOCAL ? `<div class="card set"><h3>LINE Official Account</h3><div class="muted small" style="line-height:1.7">ไฟล์ HTML นี้เก็บข้อมูลไว้ในเครื่อง จึงเชื่อม LINE ไม่ได้ — การรับข้อความจาก LINE ต้องมีเซิร์ฟเวอร์ ใช้เวอร์ชันเซิร์ฟเวอร์ (server.js) แล้วกู้คืนไฟล์สำรองจากหน้านี้ได้</div></div>` : `<div class="card set"><div class="row between"><h3>LINE Official Account</h3><span class="badge ${L.configured ? 'ok' : 'no'}">${L.configured ? 'เชื่อมต่อแล้ว' : 'ยังไม่ตั้งค่า'}</span></div>
+  ${window.LOCAL ? `<div class="card set">${sh('chat','LINE Official Account','','green')}<div class="muted small" style="line-height:1.7">ไฟล์ HTML นี้เก็บข้อมูลไว้ในเครื่อง จึงเชื่อม LINE ไม่ได้ — การรับข้อความจาก LINE ต้องมีเซิร์ฟเวอร์ ใช้เวอร์ชันเซิร์ฟเวอร์ (server.js) แล้วกู้คืนไฟล์สำรองจากหน้านี้ได้</div></div>` : `<div class="card set">${sh('chat','LINE Official Account',`<span class="badge ${L.configured ? 'ok' : 'no'}">${L.configured ? 'เชื่อมต่อแล้ว' : 'ยังไม่ตั้งค่า'}</span>`)}
     <ol class="steps"><li>สร้าง LINE OA และเปิด <b>Messaging API</b> ที่ developers.line.biz</li><li>คัดลอก <b>Channel secret</b> และ <b>Channel access token (long-lived)</b> มาใส่ด้านล่าง</li><li>ตั้ง <b>Webhook URL</b> เป็นค่าด้านล่าง → เปิด <b>Use webhook</b> และปิด Auto-reply</li><li>กด “สร้างรหัส” ของสมาชิกแต่ละคน → ให้สมาชิก<b>สแกน QR</b> ด้วย LINE แล้วกดส่งข้อความ “ผูก ……” ที่ขึ้นรอในแชท OA</li></ol>
     <div class="muted small">Webhook URL</div><code class="url" id="whUrl">${esc(L.webhookUrl)}</code>
     ${L.webhookUrl.startsWith('http://') ? '<div class="muted small" style="color:var(--orange)">⚠️ LINE ต้องใช้ HTTPS — ใช้โดเมนจริงหรือ tunnel (ngrok / Cloudflare Tunnel) แล้วตั้งค่า PUBLIC_URL</div>' : ''}
@@ -350,14 +371,14 @@ V.settings = async () => {
     <label class="f">Channel access token ${L.hasToken ? '<span class="green">(บันทึกแล้ว)</span>' : ''}</label><input class="i" id="lnToken" type="password" placeholder="${L.hasToken ? '•••••• (เว้นว่าง = ไม่เปลี่ยน)' : 'วาง Channel access token'}" autocomplete="off">
     <label class="f">LINE ID ของ OA (ใช้สร้าง QR) ${L.basicId ? '<span class="green">(' + esc('@' + L.basicId) + ')</span>' : ''}</label><input class="i" id="lnBasic" value="${esc(L.basicId || '')}" placeholder="เช่น @123abcde — เว้นว่างเพื่อดึงอัตโนมัติจาก Token" autocomplete="off">
     <div class="gap"></div><div class="row"><button class="btn sm" data-act="lnsave">บันทึก</button><button class="btn ghost sm" data-act="lntest">ส่งข้อความทดสอบ</button></div>
-    <div class="sec" style="font-size:14px">รหัสผูกบัญชี LINE</div>
+    <div class="sec subsec">${ico('scan')}รหัสผูกบัญชี LINE</div>
     ${S.me.members.map(m => `<div class="row" style="padding:6px 0"><span>${esc(m.avatar)} ${esc(m.name)}</span><span class="grow"></span>${S.me.user.admin ? `<button class="chip" data-act="accesscode" data-id="${m.id}">🔑 รหัสเข้าใช้งาน</button>` : ''}${m.linked ? `<button class="chip" data-act="unlink" data-id="${m.id}">ยกเลิกการเชื่อม</button>` : `<button class="chip" data-act="linkcode" data-id="${m.id}">สร้างรหัส</button>`}</div>`).join('')}
-    <div class="gap"></div><div class="row"><span class="badge ${L.ocr ? 'ok' : 'no'}">${L.ocr ? 'สแกนสลิปพร้อมใช้' : 'สแกนสลิปยังปิดอยู่'}</span></div>
-    ${L.ocr ? '' : '<div class="muted small" style="margin-top:6px">ตั้งค่า ANTHROPIC_API_KEY บนเซิร์ฟเวอร์เพื่อเปิดการอ่านสลิปอัตโนมัติ (ดู README)</div>'}
-    <div class="sec" style="font-size:14px">คำสั่งใน LINE</div>
+    <div class="gap"></div><div class="row" style="flex-wrap:wrap;gap:6px"><span class="badge ${L.ocr ? 'ok' : 'no'}">${L.ocr ? 'สแกนสลิป/บิลพร้อมใช้' : 'สแกนสลิปยังปิดอยู่'}</span>${(L.ocrProviders || []).map((p, i) => `<span class="badge ok" title="${esc(p.model)}">${i ? 'สำรอง · ' : 'หลัก · '}${esc(p.label)}</span>`).join('')}</div>
+    ${L.ocr ? '<div class="muted small" style="margin-top:6px">อ่านได้ทั้งสลิปโอนเงินและบิลเงินสด/ใบเสร็จ — ถ้าตัวแรกอ่านไม่ได้จะลองตัวถัดไปให้อัตโนมัติ</div>' : '<div class="muted small" style="margin-top:6px;line-height:1.6">ใส่กุญแจอย่างน้อย 1 ตัวในไฟล์ <b>.env</b> บนเซิร์ฟเวอร์: <b>ANTHROPIC_API_KEY</b> (Claude) · <b>GEMINI_API_KEY</b> (Gemini) · <b>OPENAI_API_KEY</b> (GPT) แล้วเปิดแอปใหม่</div>'}
+    <div class="sec subsec">${ico('chat')}คำสั่งใน LINE</div>
     <div class="muted small" style="line-height:1.8">จ่าย 120 ข้าวมันไก่ · รับ 5000 เงินเดือน · กาแฟ 65<br>ส่งรูปสลิป → บันทึกอัตโนมัติ · สรุป · วันนี้ · ลบล่าสุด</div></div>`}
-  ${window.LOCAL ? '' : `<div class="card set"><h3>ติดตั้งเป็นแอป</h3>${installBlock()}</div>`}
-  <div class="card set"><h3>สำรองข้อมูล</h3><div class="row"><button class="btn ghost sm" data-act="backup">☁️ ดาวน์โหลดไฟล์สำรอง</button><button class="btn ghost sm" data-act="restore">กู้คืน</button></div><input type="file" id="restoreFile" accept="application/json" class="hidden"></div>
+  ${window.LOCAL ? '' : `<div class="card set">${sh('download','ติดตั้งเป็นแอป','','blue')}${installBlock()}</div>`}
+  <div class="card set">${sh('cloud','สำรองข้อมูล','','blue')}<div class="row"><button class="btn ghost sm" data-act="backup">☁️ ดาวน์โหลดไฟล์สำรอง</button><button class="btn ghost sm" data-act="restore">กู้คืน</button></div><input type="file" id="restoreFile" accept="application/json" class="hidden"></div>
   ${window.LOCAL ? '<div class="muted small center">ข้อมูลเก็บในเบราว์เซอร์เครื่องนี้ — แนะนำให้สำรองข้อมูลเป็นระยะ</div>' : `<div class="card set"><div class="muted small">เข้าสู่ระบบเป็น ${esc(S.me.user.name)}${S.me.user.phone ? ' · ' + esc(S.me.user.phone) : ''}${S.me.user.admin ? ' · ผู้ดูแล' : ''}</div><div class="gap"></div><button class="btn danger" data-act="logout">ออกจากระบบ</button></div>`}`;
 };
 AFTER.settings = () => {

@@ -199,3 +199,20 @@ nav.bn button{font-size:10.5px}
 
 .qrbox{background:#fff;border-radius:16px;padding:10px;width:min(260px,70vw);margin:10px auto}.qrbox svg{display:block;width:100%;height:auto}
 
+
+/* ---- neon icon system ---- */
+.ico{width:22px;height:22px;display:block}
+nav.bn button b{display:grid;place-items:center;height:26px}
+nav.bn button b .ico{width:23px;height:23px}
+nav.bn button.on b .ico{filter:drop-shadow(0 0 5px var(--green))}
+nav.bn .plus b .ico{width:26px;height:26px;stroke-width:2.4}
+.gear{display:grid;place-items:center;color:var(--mut)} .gear .ico{width:19px;height:19px}.gear:hover{color:var(--green)}
+.sh{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.sh h3{margin:0!important;font-size:15px;flex:1}
+.sh .shr{margin-left:auto}
+.chipi{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;flex:none;border:1px solid var(--c,#2ee59d55);color:var(--c,#2ee59d);background:radial-gradient(120% 120% at 20% 10%,color-mix(in srgb,var(--c,#2ee59d) 28%,transparent),transparent 70%),#0d1219;box-shadow:0 0 14px color-mix(in srgb,var(--c,#2ee59d) 25%,transparent),inset 0 0 0 1px #ffffff08}
+.chipi .ico{width:18px;height:18px}
+.chipi.green{--c:#2ee59d}.chipi.blue{--c:#3d8bff}.chipi.orange{--c:#ffb020}.chipi.red{--c:#ff4d6d}
+.card.set{background:linear-gradient(180deg,#141a26,#10151f);border-color:#ffffff14}
+.subsec{display:flex;align-items:center;gap:8px;font-size:13px!important;color:#cfd8e6;margin-top:16px}
+.subsec .ico{width:16px;height:16px;color:var(--green)}

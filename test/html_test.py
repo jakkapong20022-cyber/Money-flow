@@ -8,7 +8,7 @@ with sync_playwright() as p:
     pg=b.new_context(viewport={'width':430,'height':900},accept_downloads=True).new_page()
     pg.on('pageerror',lambda e:errs.append(str(e))); pg.on('console',lambda m:errs.append(m.text) if m.type=='error' else None)
     pg.route('**/tesseract.min.js',lambda r:r.fulfill(body=FAKE,content_type='text/javascript'))
-    pg.goto('file:///home/claude/family-budget/dist/family-budget.html'); pg.wait_for_selector('#sfName')
+    pg.goto('file:///home/claude/money-flow/dist/family-budget.html'); pg.wait_for_selector('#sfName')
     print('1 setup shown (no login):', True)
     pg.fill('#sfName','บ้านทดสอบ'); pg.click('[data-act=sfdone]'); pg.wait_for_selector('.total')
     print('2 home:', pg.inner_text('.total .big').strip())

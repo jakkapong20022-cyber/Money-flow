@@ -187,6 +187,39 @@ const lastReply = () => { const o = line.outbox; return (m => m?.text || m?.altT
   ac.abort();
   const sw = await (await fetch(base + '/sw.js')).text(); ok(/fb-[0-9a-f]{12}/.test(sw) && !/__VERSION__/.test(sw), 'sw.js served with version hash');
 
+  console.log('Slip OCR providers (GPT / Gemini / Claude)');
+  {
+    const slipLib = require('../lib/slip'); const savedMock = process.env.OCR_MOCK; delete process.env.OCR_MOCK;
+    const cats = { expense: ['อาหารและเครื่องดื่ม'], income: ['เงินเดือน'] }; const calls = [];
+    const good = { is_slip: true, amount: '1,234.50', date: '2569-11-10', bank: null, receiver: 'ร้านกาแฟ', ref: 'R1', memo: 'ลาเต้', type: 'expense', category: 'อาหารและเครื่องดื่ม' };
+    const reply = (url) => /generativelanguage/.test(url) ? { candidates: [{ content: { parts: [{ text: JSON.stringify(good) }] } }] }
+      : /openai/.test(url) ? { choices: [{ message: { content: JSON.stringify(good) } }] } : { content: [{ text: JSON.stringify(good) }] };
+    const fakeFetch = (behave) => async (url, init) => { calls.push({ url, init, body: JSON.parse(init.body) }); const r = behave(url); return r === 'fail' ? { ok: false, status: 500, json: async () => ({}) } : { ok: true, json: async () => r }; };
+    for (const k of ['ANTHROPIC_API_KEY', 'GEMINI_API_KEY', 'OPENAI_API_KEY', 'GOOGLE_API_KEY', 'OCR_PROVIDER']) delete process.env[k];
+    ok(slipLib.providers().length === 0, 'no provider without keys');
+    process.env.GEMINI_API_KEY = 'g-key'; process.env.OPENAI_API_KEY = 'o-key';
+    ok(slipLib.providers().join() === 'gemini,openai', 'default order claude→gemini→openai (only configured ones)');
+    slipLib.__setFetch(fakeFetch(reply));
+    let r = await slipLib.scanSlip(Buffer.from('x'), 'image/jpeg', cats);
+    ok(r.provider === 'gemini' && r.amount === 1234.5 && r.date === '2026-11-10', 'Gemini read (BE date fixed)');
+    ok(/gemini-2\.5-flash:generateContent/.test(calls[0].url) && calls[0].init.headers['x-goog-api-key'] === 'g-key' && calls[0].body.contents[0].parts[1].inline_data.mime_type === 'image/jpeg', 'Gemini request shape');
+    ok(/ยอดรวมสุทธิ/.test(calls[0].body.contents[0].parts[0].text) && /เงินทอน/.test(calls[0].body.contents[0].parts[0].text), 'prompt has cash-bill rules (grand total, ignore change)');
+    calls.length = 0; slipLib.__setFetch(fakeFetch(u => /generativelanguage/.test(u) ? 'fail' : reply(u)));
+    r = await slipLib.scanSlip(Buffer.from('x'), 'image/png', cats);
+    ok(r.provider === 'openai' && calls.length === 2, 'Gemini error → falls back to GPT');
+    ok(calls[1].init.headers.authorization === 'Bearer o-key' && /^data:image\/png;base64,/.test(calls[1].body.messages[0].content[1].image_url.url) && calls[1].body.response_format.type === 'json_object', 'GPT request shape');
+    calls.length = 0; slipLib.__setFetch(fakeFetch(u => /generativelanguage/.test(u) ? { candidates: [{ content: { parts: [{ text: '{"is_slip":true,"amount":null}' }] } }] } : reply(u)));
+    r = await slipLib.scanSlip(Buffer.from('x'), 'image/jpeg', cats); ok(r.provider === 'openai' && r.amount === 1234.5, 'no amount from first provider → next one tries');
+    process.env.OCR_PROVIDER = 'openai,gemini'; ok(slipLib.providers().join() === 'openai,gemini', 'OCR_PROVIDER sets order');
+    process.env.ANTHROPIC_API_KEY = 'a-key'; process.env.OCR_PROVIDER = '';
+    ok(slipLib.providerInfo().map(x => x.label).join() === 'Claude,Gemini,GPT', 'all three listed');
+    slipLib.__setFetch(fakeFetch(() => 'fail'));
+    let failed = false; try { await slipLib.scanSlip(Buffer.from('x'), 'image/jpeg', cats); } catch (e) { failed = e.status === 502; } ok(failed, 'all providers failing → 502');
+    ok((await call('GET', '/api/me')).body.family.line.ocrProviders.length === 3, 'settings API lists active providers');
+    for (const k of ['ANTHROPIC_API_KEY', 'GEMINI_API_KEY', 'OPENAI_API_KEY', 'OCR_PROVIDER']) delete process.env[k];
+    slipLib.__setFetch((...a) => fetch(...a)); process.env.OCR_MOCK = savedMock;
+  }
+
   console.log('Login throttle');
   for (let i = 0; i < 25; i++) { const lr = await call('POST', '/api/login', { phone: '081-234-5678', password: '123456' }, null); if (lr.status !== 200) { ok(false, 'successful logins must not be throttled (attempt ' + i + ' → ' + lr.status + ')'); } }
   ok(true, '25 successful logins in a row are not throttled');

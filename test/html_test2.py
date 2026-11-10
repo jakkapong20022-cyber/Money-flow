@@ -6,7 +6,7 @@ with sync_playwright() as p:
     b=p.chromium.launch(executable_path='/usr/bin/google-chrome',args=['--no-sandbox'])
     ctx=b.new_context(viewport={'width':430,'height':900},accept_downloads=True); pg=ctx.new_page()
     pg.on('pageerror',lambda e:errs.append(str(e))); pg.on('console',lambda m:errs.append(m.text) if m.type=='error' else None)
-    pg.goto('file:///home/claude/family-budget/dist/family-budget.html'); pg.wait_for_selector('#sfName'); pg.fill('#sfName','บ้านทดสอบ'); pg.click('[data-act=sfdone]'); pg.wait_for_selector('.g3')
+    pg.goto('file:///home/claude/money-flow/dist/family-budget.html'); pg.wait_for_selector('#sfName'); pg.fill('#sfName','บ้านทดสอบ'); pg.click('[data-act=sfdone]'); pg.wait_for_selector('.g3')
     print('nav:', pg.eval_on_selector_all('nav.bn button','e=>e.map(x=>x.innerText.split("\\n").pop())'))
     # income + expense so charts render
     for typ,amt in (('income','45000'),('expense','1200')):

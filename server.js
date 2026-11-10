@@ -9,7 +9,8 @@ const U = require('./lib/util');
 const core = require('./lib/core');
 const realtime = require('./lib/realtime');
 const line = require('./lib/line');
-const { scanSlip } = require('./lib/slip');
+const slipLib = require('./lib/slip');
+const { scanSlip } = slipLib;
 const ICS = require('./public/ics.js');
 const { HttpError } = U;
 
@@ -57,7 +58,7 @@ const publicFamily = (f, req) => {
   const base = publicBase(req);
   return {
     id: f.id, name: f.name, currency: f.currency, notify: f.notify,
-    line: { configured: !!(line.lineCfg(f).secret && line.lineCfg(f).token), hasSecret: !!f.line?.channelSecret, hasToken: !!f.line?.accessToken, basicId: f.line?.basicId || '', webhookUrl: `${base}/webhook/line/${f.id}`, ocr: !!(process.env.ANTHROPIC_API_KEY || process.env.OCR_MOCK) },
+    line: { configured: !!(line.lineCfg(f).secret && line.lineCfg(f).token), hasSecret: !!f.line?.channelSecret, hasToken: !!f.line?.accessToken, basicId: f.line?.basicId || '', webhookUrl: `${base}/webhook/line/${f.id}`, ocr: !!(slipLib.providers().length || process.env.OCR_MOCK), ocrProviders: slipLib.providerInfo() },
   };
 };
 const publicMember = (m) => ({ id: m.id, name: m.name, role: m.role, avatar: m.avatar, color: m.color, budget: m.budget, linked: !!m.lineUserId });
