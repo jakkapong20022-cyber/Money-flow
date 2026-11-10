@@ -4,7 +4,6 @@ const os = require('os'), path = require('path'), fs = require('fs'), crypto = r
 process.env.DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'fb-'));
 process.env.LINE_DRY_RUN = '1';
 process.env.OCR_MOCK = '1';
-process.env.LINE_LOGIN_MOCK = '1';
 const server = require('../server');
 const line = require('../lib/line');
 
@@ -29,10 +28,12 @@ const lastReply = () => { const o = line.outbox; return o[o.length - 1]?.body?.m
   await new Promise(r => server.listen(0, r)); base = 'http://127.0.0.1:' + server.address().port;
 
   console.log('Auth & setup');
-  let r = await call('POST', '/api/register', { email: 'a@b.com', password: '123456', name: 'พ่อ' }, null);
+  let r = await call('POST', '/api/register', { phone: '081-234-5678', password: '123456', name: 'พ่อ' }, null);
   ok(r.status === 201, 'register'); token = r.body.token;
-  ok((await call('POST', '/api/register', { email: 'a@b.com', password: '123456' }, null)).status === 409, 'duplicate email rejected');
-  ok((await call('POST', '/api/login', { email: 'a@b.com', password: 'wrong' }, null)).status === 401, 'bad password rejected');
+  ok((await call('POST', '/api/register', { phone: '+66812345678', password: '123456' }, null)).status === 409, 'duplicate phone rejected (+66 form normalised)');
+  ok((await call('POST', '/api/register', { phone: '123', password: '123456' }, null)).status === 400, 'invalid phone rejected');
+  ok((await call('POST', '/api/login', { phone: '0812345678', password: 'wrong' }, null)).status === 401, 'bad password rejected');
+  ok((await call('POST', '/api/login', { phone: '081 234 5678', password: '123456' }, null)).status === 200, 'login with phone number');
   ok((await call('GET', '/api/summary', null, 'nope')).status === 401, 'unauthenticated blocked');
   r = await call('POST', '/api/family', { name: 'บ้านสุขสันต์', currency: '฿', members: [{ name: 'พ่อ', avatar: '👨' }, { name: 'แม่', avatar: '👩' }, { name: 'ลูก', avatar: '🧒' }] });
   ok(r.status === 201, 'create family'); const famId = r.body.id;
@@ -162,20 +163,19 @@ const lastReply = () => { const o = line.outbox; return o[o.length - 1]?.body?.m
   ok(stx.source === 'slip' && stx.slip && stx.slip.receiver && stx.slip.bank && !JSON.stringify(stx).includes('base64'), 'scanned slip keeps extracted data only (no image stored)');
   ok((await call('GET', '/api/backup')).body.debts.length === 2, 'backup includes debts');
 
-  console.log('LINE Login + live updates');
-  ok((await call('GET', '/api/config', null, null)).body.lineLogin === true, 'config reports LINE Login enabled');
-  let rr = await fetch(base + '/auth/line/start', { redirect: 'manual' }); const loc1 = new URL(rr.headers.get('location'));
-  ok(rr.status === 302 && loc1.searchParams.get('code') === 'mock:Umock', 'start redirects to callback (mock)');
-  let cb = await fetch(base + loc1.pathname + loc1.search, { redirect: 'manual' }); let lc3 = new URL(cb.headers.get('location'), base);
-  ok(lc3.searchParams.get('lerr') === null && lc3.searchParams.get('lc'), 'callback issues one-time code');
-  r = await call('POST', '/api/login/line', { code: lc3.searchParams.get('lc') }, null); ok(r.status === 403, 'unlinked LINE account refused');
-  cb = await fetch(base + '/auth/line/callback?code=mock:Umom&state=bogus', { redirect: 'manual' }); ok(new URL(cb.headers.get('location'), base).searchParams.get('lerr') === 'state', 'bad state rejected');
-  rr = await fetch(base + '/auth/line/start', { redirect: 'manual' }); const lst = new URL(rr.headers.get('location')).searchParams.get('state');
-  cb = await fetch(`${base}/auth/line/callback?code=mock:Umom&state=${lst}`, { redirect: 'manual' }); const oc = new URL(cb.headers.get('location'), base).searchParams.get('lc');
-  r = await call('POST', '/api/login/line', { code: oc }, null); ok(r.status === 200 && r.body.token, 'linked LINE account logs in');
-  const lineTok = r.body.token; ok((await call('GET', '/api/me', null, lineTok)).body.family.id === famId, 'LINE session sees the family');
-  ok((await call('POST', '/api/login/line', { code: oc }, null)).status === 401, 'one-time code cannot be reused');
-  ok((await call('POST', '/api/login', { email: 'line:Umom', password: 'x' }, null)).status === 401, 'LINE-only user cannot password-login');
+  console.log('Admin access code + live updates');
+  ok((await call('GET', '/api/me')).body.user.admin === true, 'family creator is admin');
+  r = await call('POST', `/api/members/${mom.id}/accesscode`); ok(/^[A-Z2-9]{4}-[A-Z2-9]{4}$/.test(r.body.code), 'admin issues access code for a member');
+  const ac1 = r.body.code;
+  r = await call('POST', '/api/login/code', { code: 'ZZZZ-ZZZZ' }, null); ok(r.status === 401, 'wrong access code rejected');
+  r = await call('POST', '/api/login/code', { code: ac1.toLowerCase().replace('-', ' ') }, null); ok(r.status === 200 && r.body.token, 'access code logs in (case/format tolerant)');
+  const codeTok = r.body.token; r = await call('GET', '/api/me', null, codeTok);
+  ok(r.body.family.id === famId && r.body.user.name === 'แม่' && r.body.user.admin === false, 'code session sees the family as that member, not admin');
+  ok((await call('POST', '/api/login/code', { code: ac1 }, null)).status === 401, 'access code is single-use');
+  ok((await call('POST', `/api/members/${dad.id}/accesscode`, {}, codeTok)).status === 403, 'non-admin cannot issue codes');
+  const ac2 = (await call('POST', `/api/members/${mom.id}/accesscode`)).body.code, ac3 = (await call('POST', `/api/members/${mom.id}/accesscode`)).body.code;
+  ok((await call('POST', '/api/login/code', { code: ac2 }, null)).status === 401 && (await call('POST', '/api/login/code', { code: ac3 }, null)).status === 200, 'new code replaces the previous one');
+  ok((await call('POST', '/api/login', { phone: '0999999999', password: 'x' }, null)).status === 401, 'code-only user has no password login');
   // SSE
   const ac = new AbortController(); const er = await fetch(`${base}/api/events?token=${token}`, { signal: ac.signal });
   ok(er.status === 200 && /event-stream/.test(er.headers.get('content-type')), 'SSE stream opens');

@@ -202,8 +202,6 @@ nav.bn button{font-size:10.5px}
 
 .qrbox{background:#fff;border-radius:16px;padding:10px;width:min(260px,70vw);margin:10px auto}.qrbox svg{display:block;width:100%;height:auto}
 
-.linebtn{display:block;text-align:center;background:#06c755;color:#fff;text-decoration:none;font-weight:700;border-radius:14px;padding:14px}
-.or{display:flex;align-items:center;gap:10px;color:var(--muted,#8a95a8);font-size:12px;margin:14px 0}.or:before,.or:after{content:'';flex:1;height:1px;background:#ffffff1f}
 </style></head><body><div id="app"></div>
 <script>(function(){const defs={'./store':function(module,exports,require){
 const KEY='family-budget-v1'; const empty=()=>({users:[],sessions:{},families:[],members:[],categories:[],transactions:[],debts:[]});
@@ -925,14 +923,16 @@ V.auth = async () => `<div class="auth">
   <h1 class="center" style="font-size:28px">Family Budget</h1>
   <p class="center muted">จัดการรายรับรายจ่ายของทั้งครอบครัว<br>บันทึกผ่านแอปหรือ LINE พร้อมสแกนสลิป</p>
   <div class="gap"></div>
-  ${S.cfg?.lineLogin ? `<a class="btn linebtn" href="/auth/line/start">💬 เข้าสู่ระบบด้วย LINE</a><div class="or"><span>หรือ</span></div>` : ''}
-  <div class="seg"><button class="${S.authTab === 'login' ? 'on' : ''}" data-act="authtab" data-t="login">เข้าสู่ระบบ</button><button class="${S.authTab === 'register' ? 'on' : ''}" data-act="authtab" data-t="register">สมัครสมาชิก</button></div>
-  <form id="authForm" autocomplete="on">
+  <div class="seg"><button class="${S.authTab === 'login' ? 'on' : ''}" data-act="authtab" data-t="login">เข้าสู่ระบบ</button><button class="${S.authTab === 'code' ? 'on' : ''}" data-act="authtab" data-t="code">รหัสจากผู้ดูแล</button><button class="${S.authTab === 'register' ? 'on' : ''}" data-act="authtab" data-t="register">สมัครสมาชิก</button></div>
+  ${S.authTab === 'code' ? `<form id="codeForm" autocomplete="off">
+    <p class="muted small" style="margin:12px 0 0">ขอรหัสเข้าใช้งานจากผู้ดูแลครอบครัว (ที่ ตั้งค่า → รหัสเข้าใช้งาน) แล้วกรอกด้านล่าง — รหัสใช้ได้ครั้งเดียวภายใน 24 ชั่วโมง</p>
+    <label class="f">รหัสลับ</label><input class="i" name="code" placeholder="XXXX-XXXX" autocapitalize="characters" autocomplete="off" required style="letter-spacing:3px;text-align:center;font-size:20px">
+    <div class="gap"></div><button class="btn" type="submit">เข้าใช้งาน</button></form>` : `<form id="authForm" autocomplete="on">
     ${S.authTab === 'register' ? `<label class="f">ชื่อของคุณ</label><input class="i" name="name" placeholder="เช่น พ่อ" required>` : ''}
-    <label class="f">อีเมล</label><input class="i" name="email" type="email" autocomplete="username" required>
+    <label class="f">เบอร์โทรศัพท์</label><input class="i" name="phone" type="tel" inputmode="tel" autocomplete="username" placeholder="0812345678" required>
     <label class="f">รหัสผ่าน</label><input class="i" name="password" type="password" minlength="6" autocomplete="${S.authTab === 'login' ? 'current-password' : 'new-password'}" required>
     <div class="gap"></div><button class="btn" type="submit">${S.authTab === 'login' ? 'เข้าสู่ระบบ' : 'สร้างบัญชี'}</button>
-  </form></div>`;
+  </form>`}</div>`;
 
 V.setup = async () => {
   S.setup ||= { name: '', currency: '฿', members: [{ name: 'พ่อ', avatar: '👨' }, { name: 'แม่', avatar: '👩' }, { name: 'ลูก', avatar: '🧒' }] };
@@ -1162,13 +1162,13 @@ V.settings = async () => {
     <label class="f">LINE ID ของ OA (ใช้สร้าง QR) ${L.basicId ? '<span class="green">(' + esc('@' + L.basicId) + ')</span>' : ''}</label><input class="i" id="lnBasic" value="${esc(L.basicId || '')}" placeholder="เช่น @123abcde — เว้นว่างเพื่อดึงอัตโนมัติจาก Token" autocomplete="off">
     <div class="gap"></div><div class="row"><button class="btn sm" data-act="lnsave">บันทึก</button><button class="btn ghost sm" data-act="lntest">ส่งข้อความทดสอบ</button></div>
     <div class="sec" style="font-size:14px">รหัสผูกบัญชี LINE</div>
-    ${S.me.members.map(m => `<div class="row" style="padding:6px 0"><span>${esc(m.avatar)} ${esc(m.name)}</span><span class="grow"></span>${m.linked ? `<button class="chip" data-act="unlink" data-id="${m.id}">ยกเลิกการเชื่อม</button>` : `<button class="chip" data-act="linkcode" data-id="${m.id}">สร้างรหัส</button>`}</div>`).join('')}
+    ${S.me.members.map(m => `<div class="row" style="padding:6px 0"><span>${esc(m.avatar)} ${esc(m.name)}</span><span class="grow"></span>${S.me.user.admin ? `<button class="chip" data-act="accesscode" data-id="${m.id}">🔑 รหัสเข้าใช้งาน</button>` : ''}${m.linked ? `<button class="chip" data-act="unlink" data-id="${m.id}">ยกเลิกการเชื่อม</button>` : `<button class="chip" data-act="linkcode" data-id="${m.id}">สร้างรหัส</button>`}</div>`).join('')}
     <div class="gap"></div><div class="row"><span class="badge ${L.ocr ? 'ok' : 'no'}">${L.ocr ? 'สแกนสลิปพร้อมใช้' : 'สแกนสลิปยังปิดอยู่'}</span></div>
     ${L.ocr ? '' : '<div class="muted small" style="margin-top:6px">ตั้งค่า ANTHROPIC_API_KEY บนเซิร์ฟเวอร์เพื่อเปิดการอ่านสลิปอัตโนมัติ (ดู README)</div>'}
     <div class="sec" style="font-size:14px">คำสั่งใน LINE</div>
     <div class="muted small" style="line-height:1.8">จ่าย 120 ข้าวมันไก่ · รับ 5000 เงินเดือน · กาแฟ 65<br>ส่งรูปสลิป → บันทึกอัตโนมัติ · สรุป · วันนี้ · ลบล่าสุด</div></div>`}
   <div class="card set"><h3>สำรองข้อมูล</h3><div class="row"><button class="btn ghost sm" data-act="backup">☁️ ดาวน์โหลดไฟล์สำรอง</button><button class="btn ghost sm" data-act="restore">กู้คืน</button></div><input type="file" id="restoreFile" accept="application/json" class="hidden"></div>
-  ${window.LOCAL ? '<div class="muted small center">ข้อมูลเก็บในเบราว์เซอร์เครื่องนี้ — แนะนำให้สำรองข้อมูลเป็นระยะ</div>' : `<div class="card set"><div class="muted small">เข้าสู่ระบบเป็น ${esc(S.me.user.email)}</div><div class="gap"></div><button class="btn danger" data-act="logout">ออกจากระบบ</button></div>`}`;
+  ${window.LOCAL ? '<div class="muted small center">ข้อมูลเก็บในเบราว์เซอร์เครื่องนี้ — แนะนำให้สำรองข้อมูลเป็นระยะ</div>' : `<div class="card set"><div class="muted small">เข้าสู่ระบบเป็น ${esc(S.me.user.name)}${S.me.user.phone ? ' · ' + esc(S.me.user.phone) : ''}${S.me.user.admin ? ' · ผู้ดูแล' : ''}</div><div class="gap"></div><button class="btn danger" data-act="logout">ออกจากระบบ</button></div>`}`;
 };
 AFTER.settings = () => {
   $('#restoreFile')?.addEventListener('change', guard(async e => {
@@ -1283,6 +1283,9 @@ const A = {
     if (r.url && window.QR) { try { qr = `<div class="qrbox">${window.QR.svg(r.url)}</div><p class="muted small" style="text-align:center">เปิดกล้อง LINE → สแกน QR → ข้อความ “ผูก ${r.code}” จะขึ้นในแชท OA → กดส่ง</p><a class="btn ghost sm" href="${esc(r.url)}" target="_blank" rel="noopener" style="display:block;text-align:center;margin:6px 0">เปิดใน LINE (บนมือถือเครื่องนี้)</a>`; } catch (e) { qr = ''; } }
     if (!qr) qr = `<p class="muted small">ยังไม่มี LINE ID ของ OA จึงสร้าง QR ไม่ได้ — ใส่ LINE ID (หรือบันทึก Channel access token) ในหน้าตั้งค่า หรือส่งข้อความด้านล่างไปที่ OA เอง</p>`;
     modal(`<h3>ผูกบัญชี LINE ของ ${esc(m.name)}</h3>${qr}<p class="muted small" style="text-align:center">หรือพิมพ์ส่งเอง (ใช้ได้ ${r.expiresInMinutes} นาที)</p><div class="amount" style="font-size:26px;text-align:center">ผูก ${r.code}</div>${r.addUrl ? `<p class="muted small" style="text-align:center">ยังไม่ได้เพิ่มเพื่อน OA? <a href="${esc(r.addUrl)}" target="_blank" rel="noopener">เพิ่มเพื่อน</a></p>` : ''}<div class="gap"></div><button class="btn" data-act="closem">เข้าใจแล้ว</button>`); }),
+  accesscode: guard(async (el) => { const r = await api(`/members/${el.dataset.id}/accesscode`, 'POST');
+    modal(`<h3>รหัสเข้าใช้งานของ ${esc(r.name)}</h3><p class="muted small">ให้สมาชิกเปิดแอปแล้วเลือกแท็บ “รหัสจากผู้ดูแล” กรอกรหัสนี้ — ใช้ได้ครั้งเดียว ภายใน ${r.expiresInHours} ชั่วโมง (ออกรหัสใหม่ รหัสเก่าจะใช้ไม่ได้)</p><div class="amount" style="font-size:34px;text-align:center;letter-spacing:4px" id="acCode">${esc(r.code)}</div><div class="gap"></div><button class="btn ghost" data-act="copyac">คัดลอกรหัส</button><div class="gap"></div><button class="btn" data-act="closem">เสร็จสิ้น</button>`); }),
+  copyac: () => { navigator.clipboard?.writeText($('#acCode').textContent).then(() => toast('คัดลอกแล้ว', 'good')).catch(() => toast('คัดลอกไม่สำเร็จ', 'err')); },
   closem: closeModal,
   unlink: guard(async (el) => { if (!confirm('ยกเลิกการเชื่อม LINE ของสมาชิกนี้?')) return; await api('/members/' + el.dataset.id, 'PUT', { unlinkLine: true }); await refreshMe(); render(); }),
   backup: guard(async () => { if (window.LOCAL) { const j = await api('/backup'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(j, null, 1)], { type: 'application/json' })); a.download = `family-budget-${today()}.json`; a.click(); return; } const r = await fetch('/api/backup', { headers: { Authorization: 'Bearer ' + S.token } }); const a = document.createElement('a'); a.href = URL.createObjectURL(await r.blob()); a.download = `family-budget-${today()}.json`; a.click(); }),
@@ -1396,9 +1399,9 @@ function syncSetup() {
 }
 document.addEventListener('click', (e) => { const el = e.target.closest('[data-act]'); if (el && A[el.dataset.act]) A[el.dataset.act](el, e); });
 document.addEventListener('submit', guard(async (e) => {
-  if (e.target.id !== 'authForm') return; e.preventDefault();
+  if (e.target.id !== 'authForm' && e.target.id !== 'codeForm') return; e.preventDefault();
   const fd = Object.fromEntries(new FormData(e.target));
-  const r = await api(S.authTab === 'login' ? '/login' : '/register', 'POST', fd);
+  const r = await api(e.target.id === 'codeForm' ? '/login/code' : S.authTab === 'login' ? '/login' : '/register', 'POST', fd);
   S.token = r.token; localStorage.setItem('fb_token', r.token); await boot();
 }));
 document.addEventListener('keydown', (e) => { // physical keyboard on the add screen
@@ -1437,13 +1440,6 @@ function initPWA() {
 /* ---------- boot ---------- */
 async function boot() {
   if (window.LOCAL) S.token = 'local';
-  else {
-    const qs = new URLSearchParams(location.search);
-    if (qs.has('lc') || qs.has('lerr')) history.replaceState(null, '', '/');
-    if (qs.get('lc')) { try { const r = await api('/login/line', 'POST', { code: qs.get('lc') }); S.token = r.token; localStorage.setItem('fb_token', r.token); } catch (e) { toast(e.message, 'err'); } }
-    else if (qs.get('lerr')) toast({ off: 'ยังไม่ได้เปิดใช้ LINE Login', state: 'ลิงก์หมดอายุ ลองใหม่อีกครั้ง', cancel: 'ยกเลิกการเข้าสู่ระบบด้วย LINE', fail: 'เข้าสู่ระบบด้วย LINE ไม่สำเร็จ' }[qs.get('lerr')] || 'เข้าสู่ระบบไม่สำเร็จ', 'err');
-    if (!S.token) { try { S.cfg = await (await fetch('/api/config')).json(); } catch (_) { S.cfg = {}; } }
-  }
   if (!S.token) return go('auth');
   try { await refreshMe(); } catch { return go('auth'); }
   if (!S.me.family) return go('setup');

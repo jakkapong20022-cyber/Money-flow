@@ -7,7 +7,6 @@ const { db, save, uid, replaceAll } = require('./lib/store');
 const U = require('./lib/util');
 const core = require('./lib/core');
 const realtime = require('./lib/realtime');
-const lineLogin = require('./lib/lineLogin');
 const line = require('./lib/line');
 const { scanSlip } = require('./lib/slip');
 const ICS = require('./public/ics.js');
@@ -48,6 +47,9 @@ function famOf(user) {
   if (!f) throw new HttpError(409, 'ยังไม่ได้ตั้งค่าครอบครัว');
   return f;
 }
+const normPhone = (v) => { let d = String(v || '').replace(/[\s\-().]/g, ''); if (d.startsWith('+66')) d = '0' + d.slice(3); else if (d.startsWith('66') && d.length === 11) d = '0' + d.slice(2); return /^0\d{8,9}$/.test(d) ? d : ''; };
+const codeHash = (c) => crypto.createHash('sha256').update(String(c || '').toUpperCase().replace(/[^A-Z0-9]/g, '')).digest('hex');
+const isAdmin = (user, f) => f.ownerId ? f.ownerId === user.id : db().users.find(x => x.familyId === f.id)?.id === user.id;
 const publicBase = (req) => (process.env.PUBLIC_URL || `${(req.headers['x-forwarded-proto'] || 'http')}://${req.headers.host}`).replace(/\/$/, '');
 const famIdOfReq = (req) => { try { return famOf(auth(req)).id; } catch { return null; } };
 const publicFamily = (f, req) => {
@@ -68,35 +70,37 @@ async function api(req, res, url) {
   // --- public ---
   if (m === 'POST' && p === '/api/register') {
     throttle(ip);
-    const email = String(body.email || '').trim().toLowerCase();
-    if (!/^\S+@\S+\.\S+$/.test(email)) throw new HttpError(400, 'อีเมลไม่ถูกต้อง');
+    const phone = normPhone(body.phone);
+    if (!phone) throw new HttpError(400, 'เบอร์โทรไม่ถูกต้อง (เช่น 0812345678)');
     if (String(body.password || '').length < 6) throw new HttpError(400, 'รหัสผ่านอย่างน้อย 6 ตัวอักษร');
-    if (db().users.some(u => u.email === email)) throw new HttpError(409, 'อีเมลนี้ถูกใช้แล้ว');
+    if (db().users.some(u => u.phone === phone)) throw new HttpError(409, 'เบอร์นี้ถูกใช้แล้ว');
     const { salt, hash } = U.hashPassword(body.password);
-    const user = { id: uid('u_'), email, name: String(body.name || email.split('@')[0]).slice(0, 40), salt, hash, familyId: null };
+    const user = { id: uid('u_'), phone, email: '', name: String(body.name || 'ฉัน').slice(0, 40), salt, hash, familyId: null };
     db().users.push(user);
     const token = U.newToken(); db().sessions[token] = user.id; save();
     return json(res, 201, { token });
   }
-  if (m === 'POST' && p === '/api/login') {
+  if (m === 'POST' && p === '/api/login') { // phone number (or legacy e-mail) + password
     throttle(ip);
-    const email = String(body.email || '').trim().toLowerCase();
-    const user = db().users.find(u => u.email === email);
-    if (!user || !user.salt || !U.verifyPassword(String(body.password || ''), user.salt, user.hash)) throw new HttpError(401, 'อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+    const id = String(body.phone || body.email || '').trim();
+    const phone = normPhone(id), email = id.toLowerCase();
+    const user = db().users.find(u => (phone && u.phone === phone) || (u.email && u.email === email));
+    if (!user || !user.salt || !U.verifyPassword(String(body.password || ''), user.salt, user.hash)) throw new HttpError(401, 'เบอร์โทรหรือรหัสผ่านไม่ถูกต้อง');
     const token = U.newToken(); db().sessions[token] = user.id; save();
     return json(res, 200, { token });
   }
-
-  if (m === 'GET' && p === '/api/config') return json(res, 200, { lineLogin: lineLogin.enabled() });
-  if (m === 'POST' && p === '/api/login/line') {
+  if (m === 'POST' && p === '/api/login/code') { // one-time secret code issued by the family admin
     throttle(ip);
-    const lineId = lineLogin.takeCode(String(body.code || ''));
-    if (!lineId) throw new HttpError(401, 'ลิงก์เข้าสู่ระบบหมดอายุ ลองใหม่อีกครั้ง');
-    const mem = db().members.find(x => x.lineUserId === lineId);
-    const fam = mem && db().families.find(x => x.id === mem.familyId);
-    if (!fam) throw new HttpError(403, 'บัญชี LINE นี้ยังไม่ได้ผูกกับสมาชิก — ให้เจ้าของครอบครัวสร้างรหัส/QR แล้วผูกบัญชีก่อน');
-    let u = db().users.find(x => x.lineUserId === lineId && x.familyId === fam.id);
-    if (!u) { u = { id: uid('u_'), email: 'line:' + lineId, name: mem.name, familyId: fam.id, lineUserId: lineId }; db().users.push(u); }
+    const h = codeHash(body.code);
+    const now = Date.now();
+    db().accessCodes = (db().accessCodes || []).filter(c => c.exp > now && !c.used);
+    const c = db().accessCodes.find(x => x.hash === h);
+    if (!c) throw new HttpError(401, 'รหัสไม่ถูกต้องหรือหมดอายุ — ขอรหัสใหม่จากผู้ดูแล');
+    c.used = true;
+    const mem = db().members.find(x => x.id === c.memberId && x.familyId === c.familyId);
+    if (!mem) throw new HttpError(401, 'สมาชิกนี้ถูกลบแล้ว');
+    let u = db().users.find(x => x.accessMemberId === mem.id);
+    if (!u) { u = { id: uid('u_'), phone: '', email: '', name: mem.name, familyId: c.familyId, accessMemberId: mem.id }; db().users.push(u); }
     const token = U.newToken(); db().sessions[token] = u.id; save();
     return json(res, 200, { token });
   }
@@ -114,7 +118,7 @@ async function api(req, res, url) {
   if (m === 'POST' && p === '/api/logout') { delete db().sessions[(req.headers.authorization || '').slice(7)]; save(); return json(res, 200, { ok: true }); }
   if (m === 'GET' && p === '/api/me') {
     const f = user.familyId && db().families.find(x => x.id === user.familyId);
-    return json(res, 200, { user: { id: user.id, name: user.name, email: user.email }, family: f ? publicFamily(f, req) : null, members: f ? db().members.filter(x => x.familyId === f.id).map(publicMember) : [] });
+    return json(res, 200, { user: { id: user.id, name: user.name, email: user.email, phone: user.phone || '', admin: !!(f && isAdmin(user, f)) }, family: f ? publicFamily(f, req) : null, members: f ? db().members.filter(x => x.familyId === f.id).map(publicMember) : [] });
   }
   if (m === 'POST' && p === '/api/family') {
     if (user.familyId) throw new HttpError(409, 'มีครอบครัวอยู่แล้ว');
@@ -168,6 +172,16 @@ async function api(req, res, url) {
       db().members = db().members.filter(x => x.id !== mem.id); save();
       return json(res, 200, { ok: true });
     }
+  }
+  if ((mm = p.match(/^\/api\/members\/([\w]+)\/accesscode$/)) && m === 'POST') {
+    if (!isAdmin(user, f)) throw new HttpError(403, 'เฉพาะผู้ดูแลครอบครัวเท่านั้น');
+    const mem = db().members.find(x => x.id === mm[1] && x.familyId === f.id);
+    if (!mem) throw new HttpError(404, 'ไม่พบสมาชิก');
+    const AB = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; let code = '';
+    for (let i = 0; i < 8; i++) code += AB[crypto.randomInt(AB.length)];
+    db().accessCodes = (db().accessCodes || []).filter(c => c.exp > Date.now() && !c.used && c.memberId !== mem.id); // newest code replaces older ones
+    db().accessCodes.push({ id: uid('ac_'), familyId: f.id, memberId: mem.id, hash: codeHash(code), exp: Date.now() + 24 * 3600e3 });
+    save(); return json(res, 200, { code: code.slice(0, 4) + '-' + code.slice(4), expiresInHours: 24, name: mem.name });
   }
   if ((mm = p.match(/^\/api\/members\/([\w]+)\/linkcode$/)) && m === 'POST') {
     const mem = db().members.find(x => x.id === mm[1] && x.familyId === f.id);
@@ -341,17 +355,6 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
   try {
     if (url.pathname.startsWith('/webhook/line/') && req.method === 'POST') return await webhook(req, res, url);
-    if (url.pathname === '/auth/line/start' && req.method === 'GET') {
-      if (!lineLogin.enabled()) { res.writeHead(302, { Location: '/?lerr=off' }); return res.end(); }
-      res.writeHead(302, { Location: lineLogin.startUrl(publicBase(req) + '/auth/line/callback') }); return res.end();
-    }
-    if (url.pathname === '/auth/line/callback' && req.method === 'GET') {
-      const back = (qs) => { res.writeHead(302, { Location: '/?' + qs }); res.end(); };
-      if (!lineLogin.checkState(url.searchParams.get('state') || '')) return back('lerr=state');
-      if (url.searchParams.get('error') || !url.searchParams.get('code')) return back('lerr=cancel');
-      try { return back('lc=' + lineLogin.issueCode(await lineLogin.lineUserId(url.searchParams.get('code'), publicBase(req) + '/auth/line/callback'))); }
-      catch (e) { console.warn('[line-login]', e.message); return back('lerr=fail'); }
-    }
     if (url.pathname.startsWith('/api/')) {
       const mut = req.method !== 'GET' && url.pathname !== '/api/events';
       const fid = mut ? famIdOfReq(req) : null;
