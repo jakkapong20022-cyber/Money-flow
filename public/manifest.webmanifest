@@ -1,1 +1,68 @@
-{"name":"Family Budget","short_name":"FamilyBudget","start_url":"/","display":"standalone","background_color":"#090c12","theme_color":"#090c12","icons":[{"src":"/icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]}
+{
+ "id": "/",
+ "name": "Family Budget · รายรับรายจ่ายครอบครัว",
+ "short_name": "Family Budget",
+ "description": "บันทึกรายรับรายจ่ายของทั้งครอบครัว ผ่านแอปหรือ LINE พร้อมสแกนสลิป",
+ "lang": "th",
+ "dir": "ltr",
+ "start_url": "/",
+ "scope": "/",
+ "display": "standalone",
+ "orientation": "portrait",
+ "background_color": "#090c12",
+ "theme_color": "#090c12",
+ "categories": [
+  "finance",
+  "productivity"
+ ],
+ "icons": [
+  {
+   "src": "/icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "/icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "/icon-maskable-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  },
+  {
+   "src": "/icon.svg",
+   "sizes": "any",
+   "type": "image/svg+xml",
+   "purpose": "any"
+  }
+ ],
+ "shortcuts": [
+  {
+   "name": "เพิ่มรายการ",
+   "short_name": "เพิ่ม",
+   "url": "/?go=add",
+   "icons": [
+    {
+     "src": "/icon-192.png",
+     "sizes": "192x192"
+    }
+   ]
+  },
+  {
+   "name": "หนี้สิน",
+   "short_name": "หนี้สิน",
+   "url": "/?go=debts",
+   "icons": [
+    {
+     "src": "/icon-192.png",
+     "sizes": "192x192"
+    }
+   ]
+  }
+ ]
+}
