@@ -1,0 +1,36 @@
+from playwright.sync_api import sync_playwright
+from PIL import Image
+Image.new('RGB',(300,500),'white').save('/tmp/slip2.png')
+FAKE = "window.Tesseract={recognize:async()=>({data:{text:'โอนเงินสำเร็จ\\n10 พ.ย. 69 12:41 น.\\nกสิกรไทย\\nไปยัง\\nร้านกาแฟอเมซอน\\nจำนวน: 185.00 บาท\\nเลขที่รายการ: 0163ABCD12345678'}})}"
+errs=[]
+with sync_playwright() as p:
+    b=p.chromium.launch(executable_path='/usr/bin/google-chrome',args=['--no-sandbox'])
+    pg=b.new_context(viewport={'width':430,'height':900},accept_downloads=True).new_page()
+    pg.on('pageerror',lambda e:errs.append(str(e))); pg.on('console',lambda m:errs.append(m.text) if m.type=='error' else None)
+    pg.route('**/tesseract.min.js',lambda r:r.fulfill(body=FAKE,content_type='text/javascript'))
+    pg.goto('file:///home/claude/family-budget/dist/family-budget.html'); pg.wait_for_selector('#sfName')
+    print('1 setup shown (no login):', True)
+    pg.fill('#sfName','บ้านทดสอบ'); pg.click('[data-act=sfdone]'); pg.wait_for_selector('.total')
+    print('2 home:', pg.inner_text('.total .big').strip())
+    pg.click('nav .plus'); pg.wait_for_selector('.keys')
+    for k in '4500': pg.click(f'.keys button[data-k="{k}"]')
+    pg.click('.av:nth-child(1)'); pg.click('[data-act=addtype][data-t=income]'); pg.click('[data-act=save][data-again="0"]'); pg.wait_for_selector('.total')
+    print('3 after income 4500:', pg.inner_text('.total .big').strip())
+    pg.click('nav .plus'); pg.wait_for_selector('.keys')
+    pg.set_input_files('#slipFile','/tmp/slip2.png'); pg.wait_for_function("document.querySelector('#amt')?.textContent.includes('185')",timeout=8000)
+    print('4 slip scan → amount', pg.inner_text('#amt'), '| date', pg.input_value('#addDate'), '| note', pg.input_value('#addNote'))
+    pg.click('[data-act=save][data-again="0"]'); pg.wait_for_selector('.total')
+    print('5 balance after slip:', pg.inner_text('.total .big').strip())
+    pg.click('nav .plus'); pg.wait_for_selector('.keys'); pg.set_input_files('#slipFile','/tmp/slip2.png'); pg.wait_for_selector('.toast')
+    print('6 dup toast:', pg.inner_text('.toast'))
+    pg.reload(); pg.wait_for_selector('.total'); print('7 persists after reload:', pg.inner_text('.total .big').strip())
+    pg.click('nav button[data-v=reports]'); pg.wait_for_selector('.chart')
+    with pg.expect_download() as d: pg.click('[data-act=expcsv]')
+    print('8 csv:', d.value.suggested_filename)
+    pg.click('.gear'); pg.wait_for_selector('.set')
+    with pg.expect_download() as d: pg.click('[data-act=backup]')
+    d.value.save_as('/tmp/bk.json'); print('9 backup bytes:', len(open('/tmp/bk.json').read()))
+    pg.set_input_files('#restoreFile','/tmp/bk.json') if False else None
+    pg.screenshot(path='/tmp/shots/h_settings.png',full_page=True)
+    b.close()
+print('errors:',errs)
