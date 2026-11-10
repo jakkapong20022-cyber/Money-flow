@@ -48,3 +48,4 @@ node test/test.js         # รันชุดทดสอบ (41 เช็ก)
 
 ## โครงสร้าง
 `server.js` API+webhook · `lib/core.js` ตรรกะรายการ/รายงาน/งบ · `lib/line.js` LINE · `lib/slip.js` สแกนสลิป · `public/` หน้าเว็บ (PWA)
+- เข้าสู่ระบบด้วย LINE (LINE Login) และอัปเดตอัตโนมัติ (ซิงก์เรียลไทม์ + PWA) — ดู DEPLOY.md

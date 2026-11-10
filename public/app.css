@@ -198,3 +198,6 @@ nav.bn button{font-size:10.5px}
 .lg2 b{color:var(--tx);font-size:16px} .lg2 em{font-style:normal;color:var(--c);font-weight:600}
 
 .qrbox{background:#fff;border-radius:16px;padding:10px;width:min(260px,70vw);margin:10px auto}.qrbox svg{display:block;width:100%;height:auto}
+
+.linebtn{display:block;text-align:center;background:#06c755;color:#fff;text-decoration:none;font-weight:700;border-radius:14px;padding:14px}
+.or{display:flex;align-items:center;gap:10px;color:var(--muted,#8a95a8);font-size:12px;margin:14px 0}.or:before,.or:after{content:'';flex:1;height:1px;background:#ffffff1f}

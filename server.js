@@ -6,6 +6,8 @@ const crypto = require('crypto');
 const { db, save, uid, replaceAll } = require('./lib/store');
 const U = require('./lib/util');
 const core = require('./lib/core');
+const realtime = require('./lib/realtime');
+const lineLogin = require('./lib/lineLogin');
 const line = require('./lib/line');
 const { scanSlip } = require('./lib/slip');
 const ICS = require('./public/ics.js');
@@ -46,8 +48,10 @@ function famOf(user) {
   if (!f) throw new HttpError(409, 'ยังไม่ได้ตั้งค่าครอบครัว');
   return f;
 }
+const publicBase = (req) => (process.env.PUBLIC_URL || `${(req.headers['x-forwarded-proto'] || 'http')}://${req.headers.host}`).replace(/\/$/, '');
+const famIdOfReq = (req) => { try { return famOf(auth(req)).id; } catch { return null; } };
 const publicFamily = (f, req) => {
-  const base = process.env.PUBLIC_URL || `${(req.headers['x-forwarded-proto'] || 'http')}://${req.headers.host}`;
+  const base = publicBase(req);
   return {
     id: f.id, name: f.name, currency: f.currency, notify: f.notify,
     line: { configured: !!(line.lineCfg(f).secret && line.lineCfg(f).token), hasSecret: !!f.line?.channelSecret, hasToken: !!f.line?.accessToken, basicId: f.line?.basicId || '', webhookUrl: `${base}/webhook/line/${f.id}`, ocr: !!(process.env.ANTHROPIC_API_KEY || process.env.OCR_MOCK) },
@@ -78,9 +82,30 @@ async function api(req, res, url) {
     throttle(ip);
     const email = String(body.email || '').trim().toLowerCase();
     const user = db().users.find(u => u.email === email);
-    if (!user || !U.verifyPassword(String(body.password || ''), user.salt, user.hash)) throw new HttpError(401, 'อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+    if (!user || !user.salt || !U.verifyPassword(String(body.password || ''), user.salt, user.hash)) throw new HttpError(401, 'อีเมลหรือรหัสผ่านไม่ถูกต้อง');
     const token = U.newToken(); db().sessions[token] = user.id; save();
     return json(res, 200, { token });
+  }
+
+  if (m === 'GET' && p === '/api/config') return json(res, 200, { lineLogin: lineLogin.enabled() });
+  if (m === 'POST' && p === '/api/login/line') {
+    throttle(ip);
+    const lineId = lineLogin.takeCode(String(body.code || ''));
+    if (!lineId) throw new HttpError(401, 'ลิงก์เข้าสู่ระบบหมดอายุ ลองใหม่อีกครั้ง');
+    const mem = db().members.find(x => x.lineUserId === lineId);
+    const fam = mem && db().families.find(x => x.id === mem.familyId);
+    if (!fam) throw new HttpError(403, 'บัญชี LINE นี้ยังไม่ได้ผูกกับสมาชิก — ให้เจ้าของครอบครัวสร้างรหัส/QR แล้วผูกบัญชีก่อน');
+    let u = db().users.find(x => x.lineUserId === lineId && x.familyId === fam.id);
+    if (!u) { u = { id: uid('u_'), email: 'line:' + lineId, name: mem.name, familyId: fam.id, lineUserId: lineId }; db().users.push(u); }
+    const token = U.newToken(); db().sessions[token] = u.id; save();
+    return json(res, 200, { token });
+  }
+
+  // live updates (EventSource can't send headers → token in query)
+  if (m === 'GET' && p === '/api/events') {
+    if (q.get('token')) req.headers.authorization = 'Bearer ' + q.get('token');
+    const eu = auth(req); const ef = famOf(eu);
+    return realtime.subscribe(ef.id, res);
   }
 
   // --- authenticated ---
@@ -292,6 +317,7 @@ async function webhook(req, res, url) {
   let events = [];
   try { events = JSON.parse(raw.toString()).events || []; } catch (_) { return; }
   for (const ev of events) { try { await line.handleEvent(f, ev); } catch (e) { console.error('[line] event error', e); } }
+  if (events.length) realtime.broadcast(f.id);
 }
 
 // ---------- static ----------
@@ -300,8 +326,14 @@ function serveStatic(req, res, url) {
   if (rel === '/') rel = '/index.html';
   let file = path.normalize(path.join(PUBLIC, rel));
   if (!file.startsWith(PUBLIC)) { res.writeHead(403); return res.end(); }
+  if (rel === '/sw.js') { // version = hash of the app files, so a deploy changes sw.js → browsers update themselves
+    const ver = crypto.createHash('sha1');
+    for (const n of fs.readdirSync(PUBLIC).sort()) { const st = fs.statSync(path.join(PUBLIC, n)); ver.update(n + st.size + st.mtimeMs); }
+    res.writeHead(200, { 'Content-Type': MIME['.js'], 'Cache-Control': 'no-cache', 'Service-Worker-Allowed': '/' });
+    return res.end(fs.readFileSync(path.join(PUBLIC, 'sw.js'), 'utf8').replaceAll('__VERSION__', ver.digest('hex').slice(0, 12)));
+  }
   if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) file = path.join(PUBLIC, 'index.html');
-  res.writeHead(200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream', 'Cache-Control': file.endsWith('index.html') ? 'no-cache' : 'public, max-age=3600' });
+  res.writeHead(200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-cache' });
   fs.createReadStream(file).pipe(res);
 }
 
@@ -309,7 +341,24 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
   try {
     if (url.pathname.startsWith('/webhook/line/') && req.method === 'POST') return await webhook(req, res, url);
-    if (url.pathname.startsWith('/api/')) return await api(req, res, url);
+    if (url.pathname === '/auth/line/start' && req.method === 'GET') {
+      if (!lineLogin.enabled()) { res.writeHead(302, { Location: '/?lerr=off' }); return res.end(); }
+      res.writeHead(302, { Location: lineLogin.startUrl(publicBase(req) + '/auth/line/callback') }); return res.end();
+    }
+    if (url.pathname === '/auth/line/callback' && req.method === 'GET') {
+      const back = (qs) => { res.writeHead(302, { Location: '/?' + qs }); res.end(); };
+      if (!lineLogin.checkState(url.searchParams.get('state') || '')) return back('lerr=state');
+      if (url.searchParams.get('error') || !url.searchParams.get('code')) return back('lerr=cancel');
+      try { return back('lc=' + lineLogin.issueCode(await lineLogin.lineUserId(url.searchParams.get('code'), publicBase(req) + '/auth/line/callback'))); }
+      catch (e) { console.warn('[line-login]', e.message); return back('lerr=fail'); }
+    }
+    if (url.pathname.startsWith('/api/')) {
+      const mut = req.method !== 'GET' && url.pathname !== '/api/events';
+      const fid = mut ? famIdOfReq(req) : null;
+      const r = await api(req, res, url);
+      if (fid && res.statusCode < 400) realtime.broadcast(fid);
+      return r;
+    }
     let cm;
     if ((cm = url.pathname.match(/^\/calendar\/([a-f0-9]{32})\.ics$/)) && req.method === 'GET') {
       const fam = db().families.find(x => x.calToken === cm[1]);

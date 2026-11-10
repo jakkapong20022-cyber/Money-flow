@@ -4,6 +4,7 @@ const os = require('os'), path = require('path'), fs = require('fs'), crypto = r
 process.env.DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'fb-'));
 process.env.LINE_DRY_RUN = '1';
 process.env.OCR_MOCK = '1';
+process.env.LINE_LOGIN_MOCK = '1';
 const server = require('../server');
 const line = require('../lib/line');
 
@@ -160,6 +161,31 @@ const lastReply = () => { const o = line.outbox; return o[o.length - 1]?.body?.m
   const stx = (await call('GET', '/api/transactions?limit=1')).body[0];
   ok(stx.source === 'slip' && stx.slip && stx.slip.receiver && stx.slip.bank && !JSON.stringify(stx).includes('base64'), 'scanned slip keeps extracted data only (no image stored)');
   ok((await call('GET', '/api/backup')).body.debts.length === 2, 'backup includes debts');
+
+  console.log('LINE Login + live updates');
+  ok((await call('GET', '/api/config', null, null)).body.lineLogin === true, 'config reports LINE Login enabled');
+  let rr = await fetch(base + '/auth/line/start', { redirect: 'manual' }); const loc1 = new URL(rr.headers.get('location'));
+  ok(rr.status === 302 && loc1.searchParams.get('code') === 'mock:Umock', 'start redirects to callback (mock)');
+  let cb = await fetch(base + loc1.pathname + loc1.search, { redirect: 'manual' }); let lc3 = new URL(cb.headers.get('location'), base);
+  ok(lc3.searchParams.get('lerr') === null && lc3.searchParams.get('lc'), 'callback issues one-time code');
+  r = await call('POST', '/api/login/line', { code: lc3.searchParams.get('lc') }, null); ok(r.status === 403, 'unlinked LINE account refused');
+  cb = await fetch(base + '/auth/line/callback?code=mock:Umom&state=bogus', { redirect: 'manual' }); ok(new URL(cb.headers.get('location'), base).searchParams.get('lerr') === 'state', 'bad state rejected');
+  rr = await fetch(base + '/auth/line/start', { redirect: 'manual' }); const lst = new URL(rr.headers.get('location')).searchParams.get('state');
+  cb = await fetch(`${base}/auth/line/callback?code=mock:Umom&state=${lst}`, { redirect: 'manual' }); const oc = new URL(cb.headers.get('location'), base).searchParams.get('lc');
+  r = await call('POST', '/api/login/line', { code: oc }, null); ok(r.status === 200 && r.body.token, 'linked LINE account logs in');
+  const lineTok = r.body.token; ok((await call('GET', '/api/me', null, lineTok)).body.family.id === famId, 'LINE session sees the family');
+  ok((await call('POST', '/api/login/line', { code: oc }, null)).status === 401, 'one-time code cannot be reused');
+  ok((await call('POST', '/api/login', { email: 'line:Umom', password: 'x' }, null)).status === 401, 'LINE-only user cannot password-login');
+  // SSE
+  const ac = new AbortController(); const er = await fetch(`${base}/api/events?token=${token}`, { signal: ac.signal });
+  ok(er.status === 200 && /event-stream/.test(er.headers.get('content-type')), 'SSE stream opens');
+  const rd = er.body.getReader(); await rd.read(); // retry line
+  const got = (async () => { let buf = ''; for (;;) { const { value, done } = await rd.read(); if (done) return ''; buf += Buffer.from(value).toString(); if (/event: change/.test(buf)) return buf; } })();
+  await call('POST', '/api/transactions', { type: 'expense', amount: 5, categoryId: food.id, memberId: mom.id, date: new Date().toISOString().slice(0, 10), note: 'sse' });
+  ok(/event: change/.test(await Promise.race([got, new Promise(r => setTimeout(() => r(''), 3000))])), 'change pushed to open app after a write');
+  await lineEvent(famId, [evText('Umom', 'จ่าย 10 กาแฟ')]);
+  ac.abort();
+  const sw = await (await fetch(base + '/sw.js')).text(); ok(/fb-[0-9a-f]{12}/.test(sw) && !/__VERSION__/.test(sw), 'sw.js served with version hash');
 
   console.log('Backup / restore');
   const bk = (await call('GET', '/api/backup')).body;

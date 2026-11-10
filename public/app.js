@@ -41,6 +41,7 @@ const cur = () => S.me?.family?.currency || '฿';
 async function api(path, method = 'GET', body) {
   if (window.LOCAL) return window.LOCAL.handle(method, path, body);
   const r = await fetch('/api' + path, { method, headers: { 'Content-Type': 'application/json', ...(S.token ? { Authorization: 'Bearer ' + S.token } : {}) }, body: body ? JSON.stringify(body) : undefined });
+  if (method !== 'GET') S.lastMut = Date.now();
   const ct = r.headers.get('content-type') || '';
   const j = ct.includes('json') ? await r.json().catch(() => ({})) : await r.text();
   if (r.status === 401 && S.token) { logout(true); throw new Error('เซสชันหมดอายุ'); }
@@ -65,7 +66,7 @@ const mains = (type) => S.cats.filter(c => c.type === type && !c.parentId);
 const subs = (id) => S.cats.filter(c => c.parentId === id);
 async function refreshMe() { S.me = await api('/me'); }
 async function refreshCats() { S.cats = await api('/categories'); }
-function logout(silent) { localStorage.removeItem('fb_token'); if (!silent && S.token) fetch('/api/logout', { method: 'POST', headers: { Authorization: 'Bearer ' + S.token } }); S.token = null; S.me = null; go('auth'); }
+function logout(silent) { stopLive(); localStorage.removeItem('fb_token'); if (!silent && S.token) fetch('/api/logout', { method: 'POST', headers: { Authorization: 'Bearer ' + S.token } }); S.token = null; S.me = null; go('auth'); }
 
 /* ---------- router ---------- */
 const NAV = [['home', '🏠', 'หน้าแรก'], ['cats', '🗂️', 'หมวดหมู่'], ['add', '＋', 'เพิ่ม'], ['debts', '💳', 'หนี้สิน'], ['reports', '📊', 'รายงาน']];
@@ -111,6 +112,7 @@ V.auth = async () => `<div class="auth">
   <h1 class="center" style="font-size:28px">Family Budget</h1>
   <p class="center muted">จัดการรายรับรายจ่ายของทั้งครอบครัว<br>บันทึกผ่านแอปหรือ LINE พร้อมสแกนสลิป</p>
   <div class="gap"></div>
+  ${S.cfg?.lineLogin ? `<a class="btn linebtn" href="/auth/line/start">💬 เข้าสู่ระบบด้วย LINE</a><div class="or"><span>หรือ</span></div>` : ''}
   <div class="seg"><button class="${S.authTab === 'login' ? 'on' : ''}" data-act="authtab" data-t="login">เข้าสู่ระบบ</button><button class="${S.authTab === 'register' ? 'on' : ''}" data-act="authtab" data-t="register">สมัครสมาชิก</button></div>
   <form id="authForm" autocomplete="on">
     ${S.authTab === 'register' ? `<label class="f">ชื่อของคุณ</label><input class="i" name="name" placeholder="เช่น พ่อ" required>` : ''}
@@ -592,12 +594,49 @@ document.addEventListener('keydown', (e) => { // physical keyboard on the add sc
 });
 
 /* ---------- boot ---------- */
+/* ---------- live updates (SSE) + auto-update (service worker) ---------- */
+let live = null, liveTimer = null;
+function stopLive() { if (live) { live.close(); live = null; } clearTimeout(liveTimer); }
+function startLive() {
+  if (window.LOCAL || !S.token || !window.EventSource) return; stopLive();
+  live = new EventSource('/api/events?token=' + encodeURIComponent(S.token));
+  live.addEventListener('change', () => { if (Date.now() - (S.lastMut || 0) < 1500) return; clearTimeout(liveTimer); liveTimer = setTimeout(liveRefresh, 400); });
+  live.addEventListener('open', () => { if (S.liveSeen) liveRefresh(); S.liveSeen = true; }); // reconnected → catch up
+}
+async function liveRefresh(tries = 0) {
+  if (!S.me?.family || ['auth', 'setup', 'add'].includes(S.view)) return;
+  const typing = /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || '') || $('#modal');
+  if (typing) { if (tries < 8) liveTimer = setTimeout(() => liveRefresh(tries + 1), 3000); return; } // don't wipe what the user is typing
+  try { await refreshMe(); await refreshCats(); await render(); } catch (_) { /* offline */ }
+}
+function initPWA() {
+  if (window.LOCAL || !('serviceWorker' in navigator) || !/^https?:$/.test(location.protocol)) return;
+  const had = !!navigator.serviceWorker.controller; let reloading = false;
+  navigator.serviceWorker.register('/sw.js').then(reg => {
+    const check = () => reg.update().catch(() => {});
+    setInterval(check, 30 * 60e3); document.addEventListener('visibilitychange', () => { if (!document.hidden) check(); });
+  }).catch(() => {});
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!had || reloading) return; reloading = true; toast('อัปเดตเป็นเวอร์ชันใหม่แล้ว', 'good'); setTimeout(() => location.reload(), 1200);
+  });
+}
+
+/* ---------- boot ---------- */
 async function boot() {
   if (window.LOCAL) S.token = 'local';
+  else {
+    const qs = new URLSearchParams(location.search);
+    if (qs.has('lc') || qs.has('lerr')) history.replaceState(null, '', '/');
+    if (qs.get('lc')) { try { const r = await api('/login/line', 'POST', { code: qs.get('lc') }); S.token = r.token; localStorage.setItem('fb_token', r.token); } catch (e) { toast(e.message, 'err'); } }
+    else if (qs.get('lerr')) toast({ off: 'ยังไม่ได้เปิดใช้ LINE Login', state: 'ลิงก์หมดอายุ ลองใหม่อีกครั้ง', cancel: 'ยกเลิกการเข้าสู่ระบบด้วย LINE', fail: 'เข้าสู่ระบบด้วย LINE ไม่สำเร็จ' }[qs.get('lerr')] || 'เข้าสู่ระบบไม่สำเร็จ', 'err');
+    if (!S.token) { try { S.cfg = await (await fetch('/api/config')).json(); } catch (_) { S.cfg = {}; } }
+  }
   if (!S.token) return go('auth');
   try { await refreshMe(); } catch { return go('auth'); }
   if (!S.me.family) return go('setup');
   await refreshCats(); S.add = null;
+  startLive();
   go('home');
 }
+initPWA();
 boot();
