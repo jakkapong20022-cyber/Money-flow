@@ -22,7 +22,7 @@ async function lineEvent(familyId, events, secret = SECRET) {
   return r.status;
 }
 const evText = (uid, t) => ({ type: 'message', replyToken: 'rt', source: { userId: uid }, message: { type: 'text', id: '1', text: t } });
-const lastReply = () => { const o = line.outbox; return o[o.length - 1]?.body?.messages?.[0]?.text || ''; };
+const lastReply = () => { const o = line.outbox; return (m => m?.text || m?.altText || '')(o[o.length - 1]?.body?.messages?.[0]); };
 
 (async () => {
   await new Promise(r => server.listen(0, r)); base = 'http://127.0.0.1:' + server.address().port;
@@ -88,14 +88,14 @@ const lastReply = () => { const o = line.outbox; return o[o.length - 1]?.body?.m
   line.outbox = [];
   await lineEvent(famId, [evText('Umom', 'จ่าย 120 ก๋วยเตี๋ยว')]);
   ok(/บันทึกรายจ่าย.*120/s.test(lastReply()), 'text command: expense saved');
-  ok(line.outbox.some(o => o.body.to === 'Udad' && /แม่.*120/.test(o.body.messages[0].text)), 'other members notified via push');
-  ok(!line.outbox.some(o => o.body.to === 'Umom' && /💸/.test(o.body.messages[0].text)), 'actor not double-notified');
+  ok(line.outbox.some(o => o.body.to === 'Udad' && /แม่.*120/.test(o.body.messages[0].altText || o.body.messages[0].text)), 'other members notified via push');
+  ok(!line.outbox.some(o => o.body.to === 'Umom' && /💸/.test(o.body.messages[0].altText || o.body.messages[0].text)), 'actor not double-notified');
   await lineEvent(famId, [evText('Umom', 'รับ 500 ขายของ')]);
   ok(/รายรับ/.test(lastReply()), 'text command: income saved');
   await lineEvent(famId, [evText('Umom', 'กาแฟ 65')]);
   ok(/บันทึกรายจ่าย.*65/s.test(lastReply()), 'shorthand "กาแฟ 65"');
   await lineEvent(famId, [evText('Umom', 'ลบล่าสุด')]); ok(/ลบแล้ว/.test(lastReply()), 'undo last');
-  await lineEvent(famId, [evText('Umom', 'สรุป')]); ok(/สรุปเดือน/.test(lastReply()), 'summary command');
+  await lineEvent(famId, [evText('Umom', 'สรุป')]); ok(/สรุปเดือน/.test(lastReply()), 'summary command'); ok(line.outbox.at(-1).body.messages[0].type === 'flex', 'summary is a Flex card');
 
   console.log('Slip scanning');
   line.outbox = [];
