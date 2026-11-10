@@ -199,6 +199,8 @@ nav.bn button{font-size:10.5px}
 .lg2>div{background:#0d1219;border:1px solid color-mix(in srgb,var(--c) 40%,transparent);border-radius:12px;padding:9px 11px;display:grid;gap:3px;font-size:12.5px;color:var(--mut)}
 .lg2 i{display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--c);margin-right:6px;box-shadow:0 0 8px var(--c)}
 .lg2 b{color:var(--tx);font-size:16px} .lg2 em{font-style:normal;color:var(--c);font-weight:600}
+
+.qrbox{background:#fff;border-radius:16px;padding:10px;width:min(260px,70vw);margin:10px auto}.qrbox svg{display:block;width:100%;height:auto}
 </style></head><body><div id="app"></div>
 <script>(function(){const defs={'./store':function(module,exports,require){
 const KEY='family-budget-v1'; const empty=()=>({users:[],sessions:{},families:[],members:[],categories:[],transactions:[],debts:[]});
@@ -1146,12 +1148,13 @@ V.settings = async () => {
   <div class="card set"><h3>การแจ้งเตือน (ผ่าน LINE)</h3>
     ${tog('onAdd', 'แจ้งเมื่อมีรายการใหม่', 'ส่งถึงสมาชิกคนอื่นที่เชื่อม LINE')}${tog('budget', 'เตือนใกล้เกินงบ', 'เมื่อใช้ถึง 80% และ 100% ของงบรายเดือน')}${tog('daily', 'สรุปรายวัน 20:00 น.', 'ยอดรับ-จ่ายของวันนี้')}</div>
   ${window.LOCAL ? `<div class="card set"><h3>LINE Official Account</h3><div class="muted small" style="line-height:1.7">ไฟล์ HTML นี้เก็บข้อมูลไว้ในเครื่อง จึงเชื่อม LINE ไม่ได้ — การรับข้อความจาก LINE ต้องมีเซิร์ฟเวอร์ ใช้เวอร์ชันเซิร์ฟเวอร์ (server.js) แล้วกู้คืนไฟล์สำรองจากหน้านี้ได้</div></div>` : `<div class="card set"><div class="row between"><h3>LINE Official Account</h3><span class="badge ${L.configured ? 'ok' : 'no'}">${L.configured ? 'เชื่อมต่อแล้ว' : 'ยังไม่ตั้งค่า'}</span></div>
-    <ol class="steps"><li>สร้าง LINE OA และเปิด <b>Messaging API</b> ที่ developers.line.biz</li><li>คัดลอก <b>Channel secret</b> และ <b>Channel access token (long-lived)</b> มาใส่ด้านล่าง</li><li>ตั้ง <b>Webhook URL</b> เป็นค่าด้านล่าง → เปิด <b>Use webhook</b> และปิด Auto-reply</li><li>กด “รหัสผูกบัญชี” ของสมาชิกแต่ละคน แล้วส่งข้อความ <b>ผูก 123456</b> ไปที่ OA</li></ol>
+    <ol class="steps"><li>สร้าง LINE OA และเปิด <b>Messaging API</b> ที่ developers.line.biz</li><li>คัดลอก <b>Channel secret</b> และ <b>Channel access token (long-lived)</b> มาใส่ด้านล่าง</li><li>ตั้ง <b>Webhook URL</b> เป็นค่าด้านล่าง → เปิด <b>Use webhook</b> และปิด Auto-reply</li><li>กด “สร้างรหัส” ของสมาชิกแต่ละคน → ให้สมาชิก<b>สแกน QR</b> ด้วย LINE แล้วกดส่งข้อความ “ผูก ……” ที่ขึ้นรอในแชท OA</li></ol>
     <div class="muted small">Webhook URL</div><code class="url" id="whUrl">${esc(L.webhookUrl)}</code>
     ${L.webhookUrl.startsWith('http://') ? '<div class="muted small" style="color:var(--orange)">⚠️ LINE ต้องใช้ HTTPS — ใช้โดเมนจริงหรือ tunnel (ngrok / Cloudflare Tunnel) แล้วตั้งค่า PUBLIC_URL</div>' : ''}
     <button class="btn ghost sm" data-act="copywh" style="margin:6px 0">คัดลอก URL</button>
     <label class="f">Channel secret ${L.hasSecret ? '<span class="green">(บันทึกแล้ว)</span>' : ''}</label><input class="i" id="lnSecret" type="password" placeholder="${L.hasSecret ? '•••••• (เว้นว่าง = ไม่เปลี่ยน)' : 'วาง Channel secret'}" autocomplete="off">
     <label class="f">Channel access token ${L.hasToken ? '<span class="green">(บันทึกแล้ว)</span>' : ''}</label><input class="i" id="lnToken" type="password" placeholder="${L.hasToken ? '•••••• (เว้นว่าง = ไม่เปลี่ยน)' : 'วาง Channel access token'}" autocomplete="off">
+    <label class="f">LINE ID ของ OA (ใช้สร้าง QR) ${L.basicId ? '<span class="green">(' + esc('@' + L.basicId) + ')</span>' : ''}</label><input class="i" id="lnBasic" value="${esc(L.basicId || '')}" placeholder="เช่น @123abcde — เว้นว่างเพื่อดึงอัตโนมัติจาก Token" autocomplete="off">
     <div class="gap"></div><div class="row"><button class="btn sm" data-act="lnsave">บันทึก</button><button class="btn ghost sm" data-act="lntest">ส่งข้อความทดสอบ</button></div>
     <div class="sec" style="font-size:14px">รหัสผูกบัญชี LINE</div>
     ${S.me.members.map(m => `<div class="row" style="padding:6px 0"><span>${esc(m.avatar)} ${esc(m.name)}</span><span class="grow"></span>${m.linked ? `<button class="chip" data-act="unlink" data-id="${m.id}">ยกเลิกการเชื่อม</button>` : `<button class="chip" data-act="linkcode" data-id="${m.id}">สร้างรหัส</button>`}</div>`).join('')}
@@ -1268,10 +1271,13 @@ const A = {
     await refreshMe(); S.add = null; render();
   }),
   copywh: () => navigator.clipboard?.writeText($('#whUrl').textContent).then(() => toast('คัดลอกแล้ว', 'good')),
-  lnsave: guard(async () => { await api('/family', 'PUT', { line: { channelSecret: $('#lnSecret').value, accessToken: $('#lnToken').value } }); await refreshMe(); toast('บันทึกการเชื่อมต่อ LINE แล้ว', 'good'); render(); }),
+  lnsave: guard(async () => { await api('/family', 'PUT', { line: { channelSecret: $('#lnSecret').value, accessToken: $('#lnToken').value, basicId: $('#lnBasic').value } }); await refreshMe(); toast('บันทึกการเชื่อมต่อ LINE แล้ว', 'good'); render(); }),
   lntest: guard(async () => { const r = await api('/line/test', 'POST'); toast(`ส่งทดสอบถึง ${r.sent} คนแล้ว`, 'good'); }),
   linkcode: guard(async (el) => { const r = await api(`/members/${el.dataset.id}/linkcode`, 'POST'); const m = member(el.dataset.id);
-    modal(`<h3>รหัสผูกบัญชีของ ${esc(m.name)}</h3><p class="muted">ส่งข้อความนี้ไปที่ LINE OA (ใช้ได้ ${r.expiresInMinutes} นาที)</p><div class="amount" style="font-size:28px">ผูก ${r.code}</div><div class="gap"></div><button class="btn" data-act="closem">เข้าใจแล้ว</button>`); }),
+    let qr = '';
+    if (r.url && window.QR) { try { qr = `<div class="qrbox">${window.QR.svg(r.url)}</div><p class="muted small" style="text-align:center">เปิดกล้อง LINE → สแกน QR → ข้อความ “ผูก ${r.code}” จะขึ้นในแชท OA → กดส่ง</p><a class="btn ghost sm" href="${esc(r.url)}" target="_blank" rel="noopener" style="display:block;text-align:center;margin:6px 0">เปิดใน LINE (บนมือถือเครื่องนี้)</a>`; } catch (e) { qr = ''; } }
+    if (!qr) qr = `<p class="muted small">ยังไม่มี LINE ID ของ OA จึงสร้าง QR ไม่ได้ — ใส่ LINE ID (หรือบันทึก Channel access token) ในหน้าตั้งค่า หรือส่งข้อความด้านล่างไปที่ OA เอง</p>`;
+    modal(`<h3>ผูกบัญชี LINE ของ ${esc(m.name)}</h3>${qr}<p class="muted small" style="text-align:center">หรือพิมพ์ส่งเอง (ใช้ได้ ${r.expiresInMinutes} นาที)</p><div class="amount" style="font-size:26px;text-align:center">ผูก ${r.code}</div>${r.addUrl ? `<p class="muted small" style="text-align:center">ยังไม่ได้เพิ่มเพื่อน OA? <a href="${esc(r.addUrl)}" target="_blank" rel="noopener">เพิ่มเพื่อน</a></p>` : ''}<div class="gap"></div><button class="btn" data-act="closem">เข้าใจแล้ว</button>`); }),
   closem: closeModal,
   unlink: guard(async (el) => { if (!confirm('ยกเลิกการเชื่อม LINE ของสมาชิกนี้?')) return; await api('/members/' + el.dataset.id, 'PUT', { unlinkLine: true }); await refreshMe(); render(); }),
   backup: guard(async () => { if (window.LOCAL) { const j = await api('/backup'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(j, null, 1)], { type: 'application/json' })); a.download = `family-budget-${today()}.json`; a.click(); return; } const r = await fetch('/api/backup', { headers: { Authorization: 'Bearer ' + S.token } }); const a = document.createElement('a'); a.href = URL.createObjectURL(await r.blob()); a.download = `family-budget-${today()}.json`; a.click(); }),
