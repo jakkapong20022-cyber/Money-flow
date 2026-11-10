@@ -25,7 +25,8 @@ docker compose up -d --build
 1. เปิด `PUBLIC_URL` → สมัครสมาชิก → ตั้งค่าครอบครัว
 2. **ตั้งค่า → LINE Official Account**: วาง Channel secret + Channel access token → บันทึก
 3. ที่ LINE Developers ตั้ง Webhook URL ตามที่แอปแสดง (`https://โดเมน/webhook/line/<familyId>`) → Verify → เปิด Use webhook, ปิด Auto-reply
-4. กด "สร้างรหัส" ของสมาชิก → ส่ง `ผูก 123456` ใน LINE → กด "ส่งข้อความทดสอบ"
+4. กด "สร้างรหัส" ของสมาชิก → ให้สมาชิกสแกน QR ด้วย LINE (ข้อความ `ผูก 123456` จะขึ้นรอในแชท OA แค่กดส่ง) → กด "ส่งข้อความทดสอบ"
+   - QR ต้องรู้ LINE ID ของ OA: ระบบดึงให้อัตโนมัติจาก Channel access token หรือกรอกเองในหน้าตั้งค่า
 
 ## ความปลอดภัย / ดูแลระบบ
 - อย่า commit `.env`, Channel secret, token หรือ API key

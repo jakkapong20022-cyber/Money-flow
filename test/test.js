@@ -70,7 +70,14 @@ const lastReply = () => { const o = line.outbox; return o[o.length - 1]?.body?.m
   line.outbox = [];
   await lineEvent(famId, [evText('Umom', 'จ่าย 100 ข้าว')]);
   ok(/ผูกบัญชี|ยังไม่ได้ผูก/.test(lastReply()), 'unlinked user asked to link');
-  const code = (await call('POST', `/api/members/${mom.id}/linkcode`)).body.code;
+  const lc = (await call('POST', `/api/members/${mom.id}/linkcode`)).body;
+  ok(lc.url === '' && /^\d{6}$/.test(lc.code), 'link code has no QR url until OA ID is known');
+  r = await call('PUT', '/api/family', { line: { basicId: '@bad id!' } }); ok(r.status === 400, 'invalid LINE ID rejected');
+  r = await call('PUT', '/api/family', { line: { basicId: '@moneyflow1' } }); ok(r.body.line.basicId === 'moneyflow1', 'LINE ID saved without @');
+  const lc2 = (await call('POST', `/api/members/${mom.id}/linkcode`)).body; const code = lc2.code;
+  ok(lc2.url === 'https://line.me/R/oaMessage/%40moneyflow1/?' + encodeURIComponent('ผูก ' + code), 'QR url = oaMessage deep link with prefilled "ผูก code"');
+  ok(lc2.addUrl === 'https://line.me/R/ti/p/%40moneyflow1', 'add-friend url');
+  const QR = require('../public/qr.js'); const qq = QR.encode(lc2.url); ok(qq.size >= 21 && /<svg/.test(QR.svg(lc2.url)), 'QR encoder renders link');
   await lineEvent(famId, [evText('Umom', 'ผูก 000000')]); ok(/ไม่ถูกต้อง/.test(lastReply()), 'wrong link code rejected');
   await lineEvent(famId, [evText('Umom', 'ผูก ' + code)]); ok(/ผูกบัญชีสำเร็จ.*แม่/s.test(lastReply()), 'link LINE user → member');
   const dadCode = (await call('POST', `/api/members/${dad.id}/linkcode`)).body.code;

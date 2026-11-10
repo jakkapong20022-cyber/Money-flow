@@ -50,7 +50,7 @@ const publicFamily = (f, req) => {
   const base = process.env.PUBLIC_URL || `${(req.headers['x-forwarded-proto'] || 'http')}://${req.headers.host}`;
   return {
     id: f.id, name: f.name, currency: f.currency, notify: f.notify,
-    line: { configured: !!(line.lineCfg(f).secret && line.lineCfg(f).token), hasSecret: !!f.line?.channelSecret, hasToken: !!f.line?.accessToken, webhookUrl: `${base}/webhook/line/${f.id}`, ocr: !!(process.env.ANTHROPIC_API_KEY || process.env.OCR_MOCK) },
+    line: { configured: !!(line.lineCfg(f).secret && line.lineCfg(f).token), hasSecret: !!f.line?.channelSecret, hasToken: !!f.line?.accessToken, basicId: f.line?.basicId || '', webhookUrl: `${base}/webhook/line/${f.id}`, ocr: !!(process.env.ANTHROPIC_API_KEY || process.env.OCR_MOCK) },
   };
 };
 const publicMember = (m) => ({ id: m.id, name: m.name, role: m.role, avatar: m.avatar, color: m.color, budget: m.budget, linked: !!m.lineUserId });
@@ -107,6 +107,16 @@ async function api(req, res, url) {
       f.line = f.line || {};
       if (typeof body.line.channelSecret === 'string' && body.line.channelSecret.trim()) f.line.channelSecret = body.line.channelSecret.trim();
       if (typeof body.line.accessToken === 'string' && body.line.accessToken.trim()) f.line.accessToken = body.line.accessToken.trim();
+      if (typeof body.line.basicId === 'string') {
+        const id = body.line.basicId.trim().replace(/^@/, '');
+        if (id && !/^[A-Za-z0-9._-]{1,40}$/.test(id)) throw new HttpError(400, 'LINE ID ไม่ถูกต้อง');
+        f.line.basicId = id;
+      }
+      // token just saved and no ID yet → look the OA's basic ID up so the QR works without manual input
+      if (body.line.accessToken && !f.line.basicId) {
+        const info = await line.fetchBotInfo(f);
+        if (info?.basicId) f.line.basicId = String(info.basicId).replace(/^@/, '');
+      }
     }
     save(); return json(res, 200, publicFamily(f, req));
   }
@@ -138,7 +148,10 @@ async function api(req, res, url) {
     const mem = db().members.find(x => x.id === mm[1] && x.familyId === f.id);
     if (!mem) throw new HttpError(404, 'ไม่พบสมาชิก');
     mem.linkCode = String(crypto.randomInt(100000, 999999)); mem.linkExpires = Date.now() + 60 * 60e3; save();
-    return json(res, 200, { code: mem.linkCode, expiresInMinutes: 60 });
+    const basicId = f.line?.basicId || '';
+    return json(res, 200, { code: mem.linkCode, expiresInMinutes: 60, basicId,
+      url: basicId ? `https://line.me/R/oaMessage/%40${encodeURIComponent(basicId)}/?${encodeURIComponent('ผูก ' + mem.linkCode)}` : '',
+      addUrl: basicId ? `https://line.me/R/ti/p/%40${encodeURIComponent(basicId)}` : '' });
   }
   if ((mm = p.match(/^\/api\/members\/([\w]+)\/stats$/)) && m === 'GET') return json(res, 200, core.memberStats(f.id, mm[1], q.get('range') || 'month', q.get('from'), q.get('to')));
 
