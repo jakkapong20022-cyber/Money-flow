@@ -1,0 +1,10 @@
+services:
+  budget:
+    build: .
+    restart: unless-stopped
+    ports: ["3000:3000"]
+    env_file: .env
+    volumes:
+      - budget-data:/data      # ข้อมูลทั้งหมดอยู่ที่นี่ — สำรองไว้เสมอ
+volumes:
+  budget-data:

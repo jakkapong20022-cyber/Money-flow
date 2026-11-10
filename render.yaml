@@ -1,0 +1,16 @@
+# Render Blueprint — ต้องใช้แพ็กเกจที่แนบ Persistent Disk ได้ (ไม่ใช่ Free) ไม่งั้นข้อมูลหายทุกครั้งที่ redeploy
+services:
+  - type: web
+    name: family-budget
+    runtime: docker
+    plan: starter
+    healthCheckPath: /healthz
+    disk:
+      name: budget-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: PUBLIC_URL
+        sync: false          # ใส่ https://<ชื่อบริการ>.onrender.com
+      - key: ANTHROPIC_API_KEY
+        sync: false

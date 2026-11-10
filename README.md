@@ -2,6 +2,8 @@
 
 ไม่ต้องติดตั้งแพ็กเกจเพิ่ม (ใช้ Node.js 18+ ล้วน) ข้อมูลเก็บที่ `data/db.json`
 
+> นำขึ้นเซิร์ฟเวอร์จริง (LINE OA): ดู [DEPLOY.md](DEPLOY.md)
+
 ## เริ่มใช้งาน
 ```bash
 node server.js            # เปิด http://localhost:3000
