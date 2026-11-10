@@ -187,6 +187,12 @@ const lastReply = () => { const o = line.outbox; return (m => m?.text || m?.altT
   ac.abort();
   const sw = await (await fetch(base + '/sw.js')).text(); ok(/fb-[0-9a-f]{12}/.test(sw) && !/__VERSION__/.test(sw), 'sw.js served with version hash');
 
+  console.log('Login throttle');
+  for (let i = 0; i < 25; i++) { const lr = await call('POST', '/api/login', { phone: '081-234-5678', password: '123456' }, null); if (lr.status !== 200) { ok(false, 'successful logins must not be throttled (attempt ' + i + ' → ' + lr.status + ')'); } }
+  ok(true, '25 successful logins in a row are not throttled');
+  for (let i = 0; i < 25; i++) await call('POST', '/api/login', { phone: '0899999999', password: 'wrong' }, null);
+  ok((await call('POST', '/api/login', { phone: '0899999999', password: 'wrong' }, null)).status === 429, 'repeated failures are throttled');
+
   console.log('Backup / restore');
   const bk = (await call('GET', '/api/backup')).body;
   ok(bk.transactions.length > 3 && !JSON.stringify(bk).includes('Umom'), 'backup excludes LINE ids');

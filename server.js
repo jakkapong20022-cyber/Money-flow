@@ -65,7 +65,7 @@ const publicMember = (m) => ({ id: m.id, name: m.name, role: m.role, avatar: m.a
 async function api(req, res, url) {
   const m = req.method, p = url.pathname, q = url.searchParams;
   const body = ['POST', 'PUT', 'PATCH'].includes(m) ? JSON.parse((await readBody(req)).toString() || '{}') : {};
-  const ip = req.socket.remoteAddress;
+  const ip = (process.env.TRUST_PROXY && String(req.headers['x-forwarded-for'] || '').split(',')[0].trim()) || req.socket.remoteAddress;
 
   // --- public ---
   if (m === 'POST' && p === '/api/register') {
@@ -77,6 +77,7 @@ async function api(req, res, url) {
     const { salt, hash } = U.hashPassword(body.password);
     const user = { id: uid('u_'), phone, email: '', name: String(body.name || 'ฉัน').slice(0, 40), salt, hash, familyId: null };
     db().users.push(user);
+    attempts.delete(ip);
     const token = U.newToken(); db().sessions[token] = user.id; save();
     return json(res, 201, { token });
   }
@@ -86,6 +87,7 @@ async function api(req, res, url) {
     const phone = normPhone(id), email = id.toLowerCase();
     const user = db().users.find(u => (phone && u.phone === phone) || (u.email && u.email === email));
     if (!user || !user.salt || !U.verifyPassword(String(body.password || ''), user.salt, user.hash)) throw new HttpError(401, 'เบอร์โทรหรือรหัสผ่านไม่ถูกต้อง');
+    attempts.delete(ip);
     const token = U.newToken(); db().sessions[token] = user.id; save();
     return json(res, 200, { token });
   }
@@ -101,6 +103,7 @@ async function api(req, res, url) {
     if (!mem) throw new HttpError(401, 'สมาชิกนี้ถูกลบแล้ว');
     let u = db().users.find(x => x.accessMemberId === mem.id);
     if (!u) { u = { id: uid('u_'), phone: '', email: '', name: mem.name, familyId: c.familyId, accessMemberId: mem.id }; db().users.push(u); }
+    attempts.delete(ip);
     const token = U.newToken(); db().sessions[token] = u.id; save();
     return json(res, 200, { token });
   }
