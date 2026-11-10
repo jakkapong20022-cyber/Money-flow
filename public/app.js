@@ -124,7 +124,7 @@ V.auth = async () => `<div class="auth">
   </form>`}</div>`;
 
 V.setup = async () => {
-  S.setup ||= { name: '', currency: '฿', members: [{ name: 'พ่อ', avatar: '👨' }, { name: 'แม่', avatar: '👩' }, { name: 'ลูก', avatar: '🧒' }] };
+  if (!S.setup) S.setup = { name: '', currency: '฿', members: [{ name: 'พ่อ', avatar: '👨' }, { name: 'แม่', avatar: '👩' }, { name: 'ลูก', avatar: '🧒' }] };
   const st = S.setup;
   return `<div class="auth"><div class="logo">🏡</div><h2 class="center">ตั้งค่าครอบครัว</h2><p class="center muted small">ขั้นตอนสุดท้ายก่อนเริ่มใช้งาน</p>
   <label class="f">ชื่อครอบครัว</label><input class="i" id="sfName" value="${esc(st.name)}" placeholder="เช่น บ้านสุขสันต์">

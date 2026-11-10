@@ -9,7 +9,7 @@
   const HEX = /^#[0-9a-f]{6}$/i;
   let tesseractP = null;
   function loadTesseract() {
-    return tesseractP ||= new Promise((res, rej) => { const s = document.createElement('script'); s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'; s.onload = () => res(window.Tesseract); s.onerror = () => rej(new HttpError(502, 'โหลดตัวอ่านสลิปไม่ได้ (ต้องต่ออินเทอร์เน็ตครั้งแรก)')); document.head.appendChild(s); });
+    return tesseractP = tesseractP || new Promise((res, rej) => { const s = document.createElement('script'); s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'; s.onload = () => res(window.Tesseract); s.onerror = () => rej(new HttpError(502, 'โหลดตัวอ่านสลิปไม่ได้ (ต้องต่ออินเทอร์เน็ตครั้งแรก)')); document.head.appendChild(s); });
   }
   async function scan(body, f) {
     const T = await loadTesseract();
