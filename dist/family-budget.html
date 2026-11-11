@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#090c12">
-<title>Family Budget · รายรับรายจ่ายครอบครัว</title><link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiMxYzhmNjgiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMyZWU1OWQiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExMiIgZmlsbD0iIzA5MGMxMiIvPjxyZWN0IHg9IjQwIiB5PSI0MCIgd2lkdGg9IjQzMiIgaGVpZ2h0PSI0MzIiIHJ4PSI5NiIgZmlsbD0idXJsKCNnKSIvPjxwYXRoIGQ9Ik0yNTYgMTIwIDEyMCAyMzhoMzh2MTI4aDE5NlYyMzhoMzh6IiBmaWxsPSIjMDYyMzFhIi8+PGNpcmNsZSBjeD0iMjU2IiBjeT0iMjg4IiByPSI1MiIgZmlsbD0iI2Y1ZDAwMCIvPjx0ZXh0IHg9IjI1NiIgeT0iMzExIiBmb250LXNpemU9IjY0IiBmb250LXdlaWdodD0iNzAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMDYyMzFhIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiI+4Li/PC90ZXh0Pjwvc3ZnPgo=">
+<title>Family Budget · รายรับรายจ่ายครอบครัว</title><link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExMiIgZmlsbD0iIzBmMmEyMiIvPjxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzJlZTU5ZCIgc3Ryb2tlLXdpZHRoPSIyMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMTIwIDI1MCAyNTYgMTMwIDM5MiAyNTAiIC8+PHBhdGggZD0iTTE1OCAyMjZWMzc4YTE2IDE2IDAgMCAwIDE2IDE2aDE2NGExNiAxNiAwIDAgMCAxNi0xNlYyMjYiLz48Y2lyY2xlIGN4PSIyNTYiIGN5PSIzMDQiIHI9IjU0Ii8+PHBhdGggZD0iTTI0MCAyNzZ2NTZNMjQwIDI3NmgyMmExNCAxNCAwIDAgMSAwIDI4aC0yMk0yNDAgMzA0aDI2YTE0IDE0IDAgMCAxIDAgMjhoLTI2TTI1MiAyNjR2MTJNMjUyIDMzMnYxMk0yNjYgMjY0djEyTTI2NiAzMzJ2MTIiIHN0cm9rZS13aWR0aD0iOSIvPjwvZz48L3N2Zz4K">
 <style>:root{
   --bg:#090c12; --bg2:#0e131b; --card:#121823; --card2:#171e2b; --line:rgba(255,255,255,.09);
   --tx:#eef2f8; --mut:#8a95a8;
@@ -219,6 +219,36 @@ nav.bn .plus b .ico{width:26px;height:26px;stroke-width:2.4}
 .card.set{background:linear-gradient(180deg,#141a26,#10151f);border-color:#ffffff14}
 .subsec{display:flex;align-items:center;gap:8px;font-size:13px!important;color:#cfd8e6;margin-top:16px}
 .subsec .ico{width:16px;height:16px;color:var(--green)}
+
+/* ---------- unified icon style B: soft colour tiles ---------- */
+.tl{--s:38px;display:inline-grid;place-items:center;width:var(--s);height:var(--s);border-radius:11px;background:color-mix(in srgb,var(--c,#3d8bff) 18%,#0d1118);color:var(--c,#3d8bff);flex:none;font-style:normal}
+.tl .ico{width:54%;height:54%}
+.tl b{font-size:calc(var(--s) * .5);font-weight:400}
+.tl.sm{--s:28px;border-radius:9px;--c:var(--green)}
+.tl.rd{border-radius:50%}
+.ico.inl{display:inline-block;width:1.1em;height:1.1em;vertical-align:-.2em;margin:0 .08em}
+.tx .tl{--s:40px}
+.cat>.hd .tl{--s:36px}
+.tx .ti{display:none}
+.ph .ico{opacity:1}
+.av i{background:color-mix(in srgb,var(--c) 18%,#0d1118);border:2px solid transparent;box-shadow:none;color:var(--c)}
+.av i .ico{width:52%;height:52%}
+.av.sel i{border-color:var(--c);box-shadow:none;transform:scale(1.06)}
+.mini{color:var(--c,var(--green));background:color-mix(in srgb,var(--c,#2ee59d) 18%,#0d1118)}
+.mini .ico{width:60%;height:60%}
+.logo{background:color-mix(in srgb,var(--green) 18%,#0d1118);box-shadow:none;color:var(--green)}
+.logo .ico{width:58%;height:58%}
+.scan .cam{box-shadow:none;color:#fff}
+.scan .cam .ico{width:22px;height:22px}
+.ib{display:inline-grid;place-items:center;color:var(--mut)}
+.ib .ico.inl{width:17px;height:17px;margin:0;vertical-align:0}
+.emojis button{display:inline-grid;place-items:center;padding:0;background:transparent;border:2px solid transparent;border-radius:12px;width:46px;height:46px}
+.emojis button.on{border-color:var(--green);box-shadow:none}
+.emojis .tl{--s:36px}
+.gc .arr .ico{width:56px;height:56px}
+.dcal .ico.inl,.btn .ico.inl,.chip .ico.inl{margin:0 .15em 0 0}
+.dcal .ico.inl{width:19px;height:19px;margin:0;vertical-align:0}
+.back .ico{width:18px;height:18px}
 </style></head><body><div id="app"></div>
 <script>(function(){const defs={'./store':function(module,exports,require){
 const KEY='family-budget-v1'; const empty=()=>({users:[],sessions:{},families:[],members:[],categories:[],transactions:[],debts:[]});
@@ -839,8 +869,8 @@ const COLORS = ['#3d8bff', '#ff5d8f', '#f5d000', '#2ee59d', '#a66bff', '#ff8a3d'
 const CAT_ICONS = ['🍽️', '🚗', '📚', '💡', '🎮', '🛍️', '💊', '🧸', '🏠', '📦', '✈️', '🐶', '💼', '🎁', '📈', '☕', '🎓', '🔧'];
 
 const isImg = (a) => String(a || '').startsWith('data:image/');
-const avHTML = (a) => isImg(a) ? `<img src="${a}" alt="">` : esc(a);
-const emoji = (a) => isImg(a) ? '👤' : esc(a);
+const avHTML = (a) => isImg(a) ? `<img src="${a}" alt="">` : (AV_E[a] ? ico(AV_E[a]) : esc(a));
+const emoji = (a) => isImg(a) ? ico('user', 'inl') : (AV_E[a] ? ico(AV_E[a], 'inl') : esc(a));
 const TH_MON = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
 const THMONTH = (m) => `${TH_MON[+m.slice(5, 7) - 1]} ${m.slice(0, 4)}`;
 const shiftMonth = (m, n) => { const t = +m.slice(0, 4) * 12 + (+m.slice(5, 7) - 1) + n; return `${Math.floor(t / 12)}-${String(t % 12 + 1).padStart(2, '0')}`; };
@@ -877,14 +907,14 @@ async function api(path, method = 'GET', body) {
   return j;
 }
 function toast(msg, kind = '') {
-  const t = document.createElement('div'); t.className = 'toast ' + kind; t.textContent = msg; t.style.top = (18 + document.querySelectorAll('.toast').length * 56) + 'px'; document.body.appendChild(t);
+  const t = document.createElement('div'); t.className = 'toast ' + kind; t.textContent = stripE(msg); t.style.top = (18 + document.querySelectorAll('.toast').length * 56) + 'px'; document.body.appendChild(t);
   setTimeout(() => t.remove(), 2800);
 }
 const guard = (fn) => async (...a) => { try { await fn(...a); } catch (e) { toast(e.message, 'err'); } };
 function modal(html) {
   closeModal();
   const o = document.createElement('div'); o.className = 'ov'; o.id = 'modal';
-  o.innerHTML = `<div class="sheet">${html}</div>`;
+  o.innerHTML = fx(`<div class="sheet">${html}</div>`);
   o.addEventListener('click', e => { if (e.target === o) closeModal(); });
   document.body.appendChild(o); return o;
 }
@@ -918,6 +948,76 @@ const ico = (k, cls = '') => `<svg class="ico ${cls}" viewBox="0 0 24 24" fill="
 // settings card header: neon icon chip + title (+ optional right-side html)
 const sh = (k, title, right = '', tone = 'green') => `<div class="sh"><span class="chipi ${tone}">${ico(k)}</span><h3>${title}</h3>${right ? `<span class="shr">${right}</span>` : ''}</div>`;
 
+
+Object.assign(IC_P, {
+  food: '<path d="M7 3v8M4.5 3v5a2.5 2.5 0 0 0 5 0V3M7 11v10"/><path d="M17 21V3c-2.5 1.5-3.5 4-3.5 7v3H17"/>',
+  car: '<circle cx="7.5" cy="17" r="2"/><circle cx="16.5" cy="17" r="2"/><path d="M5.5 17H4a1 1 0 0 1-1-1v-4l2-5.5A2 2 0 0 1 6.9 5h10.2A2 2 0 0 1 19 6.5L21 12v4a1 1 0 0 1-1 1h-1.5M9.5 17h5M3 12h18"/>',
+  book: '<path d="M4 19V5a2 2 0 0 1 2-2h13v14H6a2 2 0 0 0-2 2 2 2 0 0 0 2 2h13"/><path d="M9 7.5h6"/>',
+  bulb: '<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/>',
+  game: '<rect x="2.5" y="7" width="19" height="11" rx="5"/><path d="M7 10.5v4M5 12.5h4M15.5 11.5h.01M18 13.5h.01"/>',
+  bag: '<path d="M5 8h14l-1 12H6z"/><path d="M9 8V7a3 3 0 0 1 6 0v1"/>',
+  pulse: '<path d="M12 20s-8-5-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 9c0 6-8 11-8 11z"/><path d="M8 12h2.5l1.5-3 2 5 1.5-2H17"/>',
+  stroller: '<circle cx="8" cy="19" r="1.7"/><circle cx="17" cy="19" r="1.7"/><path d="M3 4h2l2.5 11h10M7 8h13a7 7 0 0 1-7 7"/>',
+  box: '<path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5z"/><path d="m3 7.5 9 4.5 9-4.5M12 12v9"/>',
+  plane: '<path d="M21 3 3 10.5l7 2.5 2.5 7z"/><path d="M10 13 21 3"/>',
+  paw: '<circle cx="7" cy="11" r="1.8"/><circle cx="10.5" cy="6.8" r="1.8"/><circle cx="14.5" cy="6.8" r="1.8"/><circle cx="18" cy="11" r="1.8"/><path d="M12.5 12.5c-3 0-5 3-5 5 0 1.6 1.5 2.5 3 2s1.2-.5 2-.5 1 .5 2 .5c1.5.5 3-.4 3-2 0-2-2-5-5-5z"/>',
+  brief: '<rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7M3 13h18M11 13v2h2v-2"/>',
+  gift: '<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M5 12v8h14v-8M12 8v12"/><path d="M12 8C10 8 8 7 8 5.5S10 3 12 8c2-5 4-3.5 4-2.500S14 8 12 8"/>',
+  trend: '<path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+  coffee: '<path d="M4 9h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M17 10h1.5a2.500 2.500 0 0 1 0 5H17M8 3v3M12 3v3"/>',
+  cap: '<path d="m2 9 10-5 10 5-10 5z"/><path d="M6 11.500V16c0 1.500 3 3 6 3s6-1.500 6-3v-4.500M22 9v6"/>',
+  wrench: '<path d="M14.500 5.500a4 4 0 0 0 4.500 5.500L10 20a2.100 2.100 0 0 1-3-3l9-9"/><path d="M14.500 5.500 17 3l4 4-2.500 2.500"/>',
+  store: '<path d="m4 9 1.500-5h13L20 9"/><path d="M4 9a2.700 2.700 0 0 0 5.300 0 2.700 2.700 0 0 0 5.400 0A2.700 2.700 0 0 0 20 9M5 12v8h14v-8M10 20v-5h4v5"/>',
+  coin: '<circle cx="12" cy="12" r="9"/><path d="M14.800 9c-.4-1-1.400-1.500-2.800-1.500-1.700 0-2.800.8-2.800 2s1 1.700 2.800 2 2.800.8 2.800 2-1.100 2-2.800 2c-1.400 0-2.400-.5-2.800-1.500M12 6v1.500M12 16.500V18"/>',
+  folder: '<path d="M3 6.500A1.500 1.500 0 0 1 4.500 5H9l2 2.500h8.500A1.500 1.500 0 0 1 21 9v9a1.500 1.500 0 0 1-1.500 1.500h-15A1.500 1.500 0 0 1 3 18z"/>',
+  target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+  check: '<path d="m5 12.500 4.500 4.500L19 7.500"/>',
+  pencil: '<path d="M4 20h4L19 9a2.800 2.800 0 0 0-4-4L4 16z"/><path d="m13.500 6.500 4 4"/>',
+  trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
+  camera: '<path d="M4 8h3l1.500-2.500h7L17 8h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.500" r="3.500"/>',
+  bank: '<path d="M3 9.500 12 4l9 5.500M5 9.500V18M9.500 9.500V18M14.500 9.500V18M19 9.500V18M3 21h18M3 18h18"/>',
+  alert: '<path d="M12 4 2.500 20h19z"/><path d="M12 10v4.500M12 17.500v.01"/>',
+  receipt: '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>',
+  wallet: '<path d="M4 7a2 2 0 0 1 2-2h12v3"/><path d="M4 7v11a2 2 0 0 0 2 2h14V8H6a2 2 0 0 1-2-1"/><path d="M16 14h.01"/>',
+  scale: '<path d="M12 4v16M7 20h10M5 7h14"/><path d="m5 7-3 7a3 3 0 0 0 6 0zM19 7l-3 7a3 3 0 0 0 6 0z"/>',
+  aur: '<path d="M7 17 17 7M8 7h9v9"/>', adr: '<path d="M7 7l10 10M17 8v9H8"/>',
+  aup: '<path d="M12 19V5M6 11l6-6 6 6"/>', adn: '<path d="M12 5v14M6 13l6 6 6-6"/>',
+  pdf: '<path d="M6 3h8l5 5v13H6z"/><path d="M14 3v5h5M9 13h6M9 17h6"/>',
+  phone: '<rect x="7" y="2.500" width="10" height="19" rx="2.500"/><path d="M11 18h2"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  house2: '<path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10M10 20v-5h4v5"/>',
+  leaf: '<path d="M5 19c0-9 5-14 15-14 0 10-5 15-14 15"/><path d="M5 19c3-5 6-8 10-10"/>',
+  /* avatars */
+  a_man: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  a_woman: '<circle cx="12" cy="8" r="3.5"/><path d="M15.200 6.200c2.300-.3 3.800 1.300 3.300 4.300M4.500 21a7.500 7.500 0 0 1 15 0"/>',
+  a_kid: '<circle cx="12" cy="10" r="3"/><path d="M6 21a6 6 0 0 1 12 0M10.500 5.500c.5-1 2.500-1 3 0"/>',
+  a_girl: '<circle cx="12" cy="10" r="3"/><circle cx="6.500" cy="8.500" r="1.300"/><circle cx="17.500" cy="8.500" r="1.300"/><path d="M6 21a6 6 0 0 1 12 0"/>',
+  a_boy: '<circle cx="12" cy="10" r="3"/><path d="M8.500 8.500h7M9.500 8.500c0-2 1-3 2.500-3s2.500 1 2.500 3M6 21a6 6 0 0 1 12 0"/>',
+  a_elder: '<circle cx="12" cy="8" r="4"/><circle cx="10.300" cy="8" r="1.200"/><circle cx="13.700" cy="8" r="1.200"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  a_elderw: '<circle cx="12" cy="9" r="3.500"/><circle cx="12" cy="3.800" r="1.600"/><path d="M5 21a7 7 0 0 1 14 0"/>',
+  a_user2: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0M9 15.500l3 3 3-3"/>',
+  a_baby: '<circle cx="12" cy="12" r="7.500"/><path d="M12 4.500c0-1.500 1-2 2.500-2M9.500 11.500h.01M14.500 11.500h.01M10 15c1.200 1 2.800 1 4 0"/>',
+  a_cool: '<circle cx="12" cy="12" r="9"/><path d="M6.500 10h11M7 10v2.500a2 2 0 0 0 4 0V10M13 10v2.500a2 2 0 0 0 4 0V10M9.500 16.500c1.500 1 3.500 1 5 0"/>',
+  a_smile: '<circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01M8.500 14.500c1 2 2.200 2.800 3.500 2.800s2.500-.8 3.500-2.800"/>',
+  a_paw: '<circle cx="7" cy="11" r="1.800"/><circle cx="10.500" cy="6.800" r="1.800"/><circle cx="14.500" cy="6.800" r="1.800"/><circle cx="18" cy="11" r="1.800"/><path d="M12.500 12.500c-3 0-5 3-5 5 0 1.600 1.500 2.500 3 2s1.200-.5 2-.5 1 .5 2 .5c1.500.5 3-.4 3-2 0-2-2-5-5-5z"/>',
+});
+// legacy / stored emoji (kept as ids in the data) -> icon key
+const IC_E = {
+  '🍽️':'food','🍽':'food','🚗':'car','📚':'book','💡':'bulb','🎮':'game','🛍️':'bag','🛍':'bag','💊':'pulse','🧸':'stroller','🏠':'home','🏡':'house2',
+  '💳':'card','📦':'box','✈️':'plane','✈':'plane','💼':'brief','🎁':'gift','📈':'trend','☕':'coffee','🎓':'cap','🔧':'wrench','🛒':'store','💰':'coin','💸':'coin',
+  '📁':'folder','🎯':'target','✓':'check','✅':'check','✎':'pencil','🗑':'trash','👤':'user','📷':'camera','🏦':'bank','⚠️':'alert','⚠':'alert','🧾':'receipt',
+  '👛':'wallet','⚖️':'scale','⚖':'scale','↗':'aur','↘':'adr','↑':'aup','↓':'adn','📄':'pdf','📲':'phone','📅':'cal','🔑':'key','☁️':'cloud','☁':'cloud',
+  '⬇️':'download','⬇':'download','💬':'chat','🌿':'leaf','🎉':'check'
+};
+const AV_E = {'👨':'a_man','👩':'a_woman','🧒':'a_kid','👧':'a_girl','👦':'a_boy','👴':'a_elder','👵':'a_elderw','🧑':'a_user2','👶':'a_baby','🐶':'a_paw','😎':'a_cool','🙂':'a_smile'};
+const ALL_E = Object.assign({}, IC_E, AV_E);
+const E_RE = new RegExp('(' + Object.keys(ALL_E).sort((a, b) => b.length - a.length).join('|') + ')\\uFE0F?', 'g');
+// swap UI emoji for line icons in text nodes only (never inside tags/attributes)
+const fx = (html) => String(html).split(/(<[^>]*>)/).map(seg => seg[0] === '<' ? seg : seg.replace(E_RE, (m, e) => ico(ALL_E[e], 'inl'))).join('');
+const stripE = (t) => String(t).replace(E_RE, '').replace(/\s{2,}/g, ' ').trim();
+// colour tile for a category icon (stored emoji id or custom text)
+const ci = (icon, color, cls = '') => `<span class="tl ${cls}" style="--c:${color || '#3d8bff'}">${IC_E[icon] ? ico(IC_E[icon]) : `<b>${esc(icon || '')}</b>`}</span>`;
+
 const NAV = [['home', 'home', 'หน้าแรก'], ['cats', 'grid', 'หมวดหมู่'], ['add', 'plus', 'เพิ่ม'], ['debts', 'card', 'หนี้สิน'], ['reports', 'chart', 'รายงาน']];
 const nav = () => `<nav class="bn">${NAV.map(([k, ic, lb]) => `<button class="${k === 'add' ? 'plus' : ''} ${S.view === k || (k === 'home' && S.view === 'member') ? 'on' : ''}" data-act="nav" data-v="${k}"><b>${ico(ic)}</b>${lb}</button>`).join('')}</nav>`;
 async function go(view, opts = {}) {
@@ -929,7 +1029,7 @@ async function render() {
   const noNav = ['auth', 'setup'];
   try {
     const html = await V[S.view]();
-    app.innerHTML = noNav.includes(S.view) ? html : `${S.view === 'settings' ? '' : `<button class="gear" data-act="nav" data-v="settings" aria-label="ตั้งค่า">${ico('gear')}</button>`}<main>${html}</main>${nav()}`;
+    app.innerHTML = fx(noNav.includes(S.view) ? html : `${S.view === 'settings' ? '' : `<button class="gear" data-act="nav" data-v="settings" aria-label="ตั้งค่า">${ico('gear')}</button>`}<main>${html}</main>${nav()}`);
     AFTER[S.view]?.();
   } catch (e) { toast(e.message, 'err'); }
 }
@@ -949,7 +1049,7 @@ function donut(items, centerTop, centerBot, botColor = '#eef2f8') {
 }
 function txRow(t) {
   const sign = t.type === 'income' ? '+' : '-';
-  return `<button class="tx" style="--c:${t.color || '#3d8bff'}" data-act="txopen" data-id="${t.id}"><span class="ti">${esc(t.icon || '💸')}</span><span class="grow"><b>${esc(t.note || t.categoryName)}</b><div class="muted small">${esc(t.categoryName)} · ${esc(t.memberAvatar || '')} ${esc(t.memberName || '')} · ${dmy(t.date)}</div></span><span class="amt ${t.type === 'income' ? 'green' : 'redc'}">${sign}${cur()}${fmt(t.amount)}</span></button>`;
+  return `<button class="tx" style="--c:${t.color || '#3d8bff'}" data-act="txopen" data-id="${t.id}">${ci(t.icon || '💸', t.color)}<span class="grow"><b>${esc(t.note || t.categoryName)}</b><div class="muted small">${esc(t.categoryName)} · ${esc(t.memberAvatar || '')} ${esc(t.memberName || '')} · ${dmy(t.date)}</div></span><span class="amt ${t.type === 'income' ? 'green' : 'redc'}">${sign}${cur()}${fmt(t.amount)}</span></button>`;
 }
 const empty = (t) => `<div class="empty">${t}</div>`;
 
@@ -957,7 +1057,7 @@ const empty = (t) => `<div class="empty">${t}</div>`;
 const V = {}, AFTER = {};
 
 V.auth = async () => `<div class="auth">
-  <div class="logo">🏠</div>
+  <div class="logo">${ico('house2')}</div>
   <h1 class="center" style="font-size:28px">Family Budget</h1>
   <p class="center muted">จัดการรายรับรายจ่ายของทั้งครอบครัว<br>บันทึกผ่านแอปหรือ LINE พร้อมสแกนสลิป</p>
   <div class="gap"></div>
@@ -975,11 +1075,11 @@ V.auth = async () => `<div class="auth">
 V.setup = async () => {
   if (!S.setup) S.setup = { name: '', currency: '฿', members: [{ name: 'พ่อ', avatar: '👨' }, { name: 'แม่', avatar: '👩' }, { name: 'ลูก', avatar: '🧒' }] };
   const st = S.setup;
-  return `<div class="auth"><div class="logo">🏡</div><h2 class="center">ตั้งค่าครอบครัว</h2><p class="center muted small">ขั้นตอนสุดท้ายก่อนเริ่มใช้งาน</p>
+  return `<div class="auth"><div class="logo">${ico('house2')}</div><h2 class="center">ตั้งค่าครอบครัว</h2><p class="center muted small">ขั้นตอนสุดท้ายก่อนเริ่มใช้งาน</p>
   <label class="f">ชื่อครอบครัว</label><input class="i" id="sfName" value="${esc(st.name)}" placeholder="เช่น บ้านสุขสันต์">
   <label class="f">สกุลเงิน</label><select class="i" id="sfCur">${['฿', '$', '€', '£', '¥', '₹'].map(c => `<option ${st.currency === c ? 'selected' : ''}>${c}</option>`).join('')}</select>
   <div class="sec">สมาชิกในครอบครัว</div>
-  ${st.members.map((m, i) => `<div class="row" style="margin-bottom:8px"><button class="back" data-act="sfavatar" data-i="${i}" style="font-size:20px">${esc(m.avatar)}</button><input class="i grow sfm" data-i="${i}" value="${esc(m.name)}" placeholder="ชื่อสมาชิก"><button class="ib" data-act="sfdel" data-i="${i}">✕</button></div>`).join('')}
+  ${st.members.map((m, i) => `<div class="row" style="margin-bottom:8px"><button class="back" data-act="sfavatar" data-i="${i}" style="font-size:20px"><span class="mini">${avHTML(m.avatar)}</span></button><input class="i grow sfm" data-i="${i}" value="${esc(m.name)}" placeholder="ชื่อสมาชิก"><button class="ib" data-act="sfdel" data-i="${i}">✕</button></div>`).join('')}
   <button class="btn ghost sm" data-act="sfadd">＋ เพิ่มสมาชิก</button>
   <div class="gap"></div><button class="btn" data-act="sfdone">เริ่มใช้งาน</button></div>`;
 };
@@ -990,8 +1090,8 @@ V.home = async () => {
   const bcol = (p) => p >= 100 ? 'var(--red)' : p >= 75 ? '#f5b800' : 'var(--green)';
   const fp = (a, t) => { const p = t ? a / t * 100 : 0; return (p === 0 || p >= 10 ? Math.round(p) : Math.round(p * 10) / 10) + '%'; };
   const legend = (items) => `<div class="lg">${items.map(c => `<span><i style="--c:${c.color}"></i>${esc(c.name)}</span>`).join('')}</div>`;
-  const panel = (title, ico, body) => `<div class="panel"><div class="ph"><span>${title}</span><span class="ico">${ico}</span></div>${body}</div>`;
-  return `<div class="top"><div class="brand"><div class="logo">🌿</div><div>${esc(S.me.family.name)}<small>Family Budget</small></div></div>
+  const panel = (title, ico, body) => `<div class="panel"><div class="ph"><span>${title}</span><span class="tl sm">${ico}</span></div>${body}</div>`;
+  return `<div class="top"><div class="brand"><div class="logo">${ico('house2')}</div><div>${esc(S.me.family.name)}<small>Family Budget</small></div></div>
     <div class="mpick"><button data-act="mprev" aria-label="เดือนก่อนหน้า">‹</button><span>${THMONTH(S.month)}</span><button data-act="mnext" aria-label="เดือนถัดไป">›</button></div></div>
   ${avatars(null, 'mvopen', '')}
   <div class="card glow total"><div class="lbl">ยอดคงเหลือรวม</div><div class="big">${cur()}${fmt(s.balance)} <span style="font-size:22px;color:${s.balance >= 0 ? 'var(--green)' : 'var(--red)'}">${s.balance >= 0 ? '↑' : '↓'}</span></div></div>
@@ -1023,7 +1123,7 @@ V.add = async () => {
   if (!S.add) addInit();
   const a = S.add;
   return `${back()}<h2>เพิ่มรายการ</h2></div>
-  <button class="scan" data-act="scan"><span class="cam">📷</span><span><b>สแกนสลิป / ใบเสร็จ</b><div class="muted small">ถ่ายรูปหรือเลือกรูป ระบบกรอกให้อัตโนมัติ</div></span></button>
+  <button class="scan" data-act="scan"><span class="cam">${ico('camera')}</span><span><b>สแกนสลิป / ใบเสร็จ</b><div class="muted small">ถ่ายรูปหรือเลือกรูป ระบบกรอกให้อัตโนมัติ</div></span></button>
   <input type="file" id="slipFile" accept="image/*" class="hidden">
   ${a.slip ? `<div class="slipinfo">🧾 ข้อมูลจากสลิป (เก็บเฉพาะข้อความ ไม่เก็บไฟล์รูป)<br>${[a.slip.bank && '🏦 ' + esc(a.slip.bank), a.slip.receiver && '👤 ' + esc(a.slip.receiver), a.slip.ref && 'Ref ' + esc(a.slip.ref)].filter(Boolean).join(' · ')}</div>` : ''}
   <div class="sec">ใครเป็นคนบันทึก?</div>${avatars(a.memberId, 'addmember')}
@@ -1087,7 +1187,7 @@ V.cats = async () => {
   return `<div class="bar-top"><h2 class="grow">จัดการหมวดหมู่</h2></div>
   <div class="seg"><button class="${S.catTab === 'expense' ? 'on' : ''}" data-act="cattab" data-t="expense">หมวดรายจ่าย</button><button class="${S.catTab === 'income' ? 'on' : ''}" data-act="cattab" data-t="income">หมวดรายรับ</button></div><div class="gap"></div>
   ${list.map(c => { const open = S.openCats[c.id]; return `<div class="cat" style="--c:${c.color}">
-    <div class="hd"><span style="font-size:22px">${esc(c.icon)}</span><button class="nm" style="text-align:left;color:inherit;font:inherit" data-act="catopen" data-id="${c.id}">${esc(c.name)} <span class="muted small">${c.budget > 0 ? 'งบ ' + cur() + fmt(c.budget) + ' ' : ''}${open ? '▴' : '▾'}</span></button><button class="ib" data-act="catedit" data-id="${c.id}">✎</button><button class="ib" data-act="catdel" data-id="${c.id}">🗑</button></div>
+    <div class="hd">${ci(c.icon, c.color)}<button class="nm" style="text-align:left;color:inherit;font:inherit" data-act="catopen" data-id="${c.id}">${esc(c.name)} <span class="muted small">${c.budget > 0 ? 'งบ ' + cur() + fmt(c.budget) + ' ' : ''}${open ? '▴' : '▾'}</span></button><button class="ib" data-act="catedit" data-id="${c.id}">✎</button><button class="ib" data-act="catdel" data-id="${c.id}">🗑</button></div>
     ${open ? `<div class="subs">${subs(c.id).map(s => `<div class="sub"><span>• ${esc(s.name)}</span><span><button class="ib" data-act="catedit" data-id="${s.id}">✎</button><button class="ib" data-act="catdel" data-id="${s.id}">🗑</button></span></div>`).join('')}<div class="sub"><button class="chip" data-act="catadd" data-parent="${c.id}">＋ เพิ่มหมวดย่อย</button></div></div>` : ''}</div>`; }).join('')}
   <button class="fab" data-act="catadd" data-parent="">＋</button>`;
 };
@@ -1096,7 +1196,7 @@ function catForm(c, parent) {
   const sel = { icon: c?.icon || '📁', color: c?.color || '#3d8bff' };
   const o = modal(`<h3>${c ? 'แก้ไข' : 'เพิ่ม'}${isMain ? 'หมวดหมู่หลัก' : 'หมวดย่อย'}</h3>
     <label class="f">ชื่อ</label><input class="i" id="cfName" value="${esc(c?.name || '')}" maxlength="40">
-    ${isMain ? `<label class="f">ไอคอน</label><div class="emojis" id="cfIcons">${CAT_ICONS.map(e => `<button data-e="${e}" class="${sel.icon === e ? 'on' : ''}">${e}</button>`).join('')}</div>
+    ${isMain ? `<label class="f">ไอคอน</label><div class="emojis" id="cfIcons">${CAT_ICONS.map(e => `<button type="button" data-e="${e}" class="${sel.icon === e ? 'on' : ''}">${ci(e, sel.color)}</button>`).join('')}</div>
     <label class="f">สี</label><div class="sw-colors" id="cfColors">${['#ff8a3d', '#3d8bff', '#a66bff', '#f5d000', '#ff4d6d', '#2ee59d', '#2ec5ff', '#ff7ac8'].map(x => `<button style="--c:${x}" data-c="${x}" class="${sel.color === x ? 'on' : ''}"></button>`).join('')}</div>` : ''}
     ${isMain && (c ? c.type : S.catTab) === 'expense' ? `<label class="f">งบประมาณรายเดือน (${cur()}) — ไม่บังคับ</label><input class="i" id="cfBudget" type="number" min="0" inputmode="decimal" value="${c?.budget || ''}" placeholder="แสดงในกราฟงบประมาณคงเหลือ">` : ''}
     <div class="gap"></div><button class="btn" id="cfSave">บันทึก</button>`);
@@ -1200,7 +1300,7 @@ V.settings = async () => {
     <label class="f">LINE ID ของ OA (ใช้สร้าง QR) ${L.basicId ? '<span class="green">(' + esc('@' + L.basicId) + ')</span>' : ''}</label><input class="i" id="lnBasic" value="${esc(L.basicId || '')}" placeholder="เช่น @123abcde — เว้นว่างเพื่อดึงอัตโนมัติจาก Token" autocomplete="off">
     <div class="gap"></div><div class="row"><button class="btn sm" data-act="lnsave">บันทึก</button><button class="btn ghost sm" data-act="lntest">ส่งข้อความทดสอบ</button></div>
     <div class="sec subsec">${ico('scan')}รหัสผูกบัญชี LINE</div>
-    ${S.me.members.map(m => `<div class="row" style="padding:6px 0"><span>${esc(m.avatar)} ${esc(m.name)}</span><span class="grow"></span>${S.me.user.admin ? `<button class="chip" data-act="accesscode" data-id="${m.id}">🔑 รหัสเข้าใช้งาน</button>` : ''}${m.linked ? `<button class="chip" data-act="unlink" data-id="${m.id}">ยกเลิกการเชื่อม</button>` : `<button class="chip" data-act="linkcode" data-id="${m.id}">สร้างรหัส</button>`}</div>`).join('')}
+    ${S.me.members.map(m => `<div class="row" style="padding:6px 0"><span><span class="mini" style="width:24px;height:24px">${avHTML(m.avatar)}</span> ${esc(m.name)}</span><span class="grow"></span>${S.me.user.admin ? `<button class="chip" data-act="accesscode" data-id="${m.id}">🔑 รหัสเข้าใช้งาน</button>` : ''}${m.linked ? `<button class="chip" data-act="unlink" data-id="${m.id}">ยกเลิกการเชื่อม</button>` : `<button class="chip" data-act="linkcode" data-id="${m.id}">สร้างรหัส</button>`}</div>`).join('')}
     <div class="gap"></div><div class="row" style="flex-wrap:wrap;gap:6px"><span class="badge ${L.ocr ? 'ok' : 'no'}">${L.ocr ? 'สแกนสลิป/บิลพร้อมใช้' : 'สแกนสลิปยังปิดอยู่'}</span>${(L.ocrProviders || []).map((p, i) => `<span class="badge ok" title="${esc(p.model)}">${i ? 'สำรอง · ' : 'หลัก · '}${esc(p.label)}</span>`).join('')}</div>
     ${L.ocr ? '<div class="muted small" style="margin-top:6px">อ่านได้ทั้งสลิปโอนเงินและบิลเงินสด/ใบเสร็จ — ถ้าตัวแรกอ่านไม่ได้จะลองตัวถัดไปให้อัตโนมัติ</div>' : '<div class="muted small" style="margin-top:6px;line-height:1.6">ใส่กุญแจอย่างน้อย 1 ตัวในไฟล์ <b>.env</b> บนเซิร์ฟเวอร์: <b>ANTHROPIC_API_KEY</b> (Claude) · <b>GEMINI_API_KEY</b> (Gemini) · <b>OPENAI_API_KEY</b> (GPT) แล้วเปิดแอปใหม่</div>'}
     <div class="sec subsec">${ico('chat')}คำสั่งใน LINE</div>
@@ -1229,7 +1329,7 @@ function memberForm(m) {
     <label class="f">รูปสมาชิก</label>
     <div class="row"><div class="av" id="mfPrev" style="--c:${st.color}"><i>${avHTML(st.avatar)}</i></div><div class="grow"><button class="btn ghost sm" id="mfUp" type="button">📷 อัปโหลดรูป</button> <button class="btn ghost sm" id="mfClr" type="button">ใช้อีโมจิ</button></div></div>
     <input type="file" id="mfFile" accept="image/*" class="hidden">
-    <div class="emojis" id="mfAv">${EMOJIS.map(e => `<button type="button" data-e="${e}" class="${st.avatar === e ? 'on' : ''}">${e}</button>`).join('')}</div>
+    <div class="emojis" id="mfAv">${EMOJIS.map(e => `<button type="button" data-e="${e}" class="${st.avatar === e ? 'on' : ''}"><span class="tl rd" style="--c:${st.color}">${avHTML(e)}</span></button>`).join('')}</div>
     <label class="f">สี</label><div class="sw-colors" id="mfCol">${COLORS.map(x => `<button type="button" style="--c:${x}" data-c="${x}" class="${st.color === x ? 'on' : ''}"></button>`).join('')}</div>
     <label class="f">งบประจำเดือน (${cur()}) — ไม่บังคับ</label><input class="i" id="mfBudget" type="number" min="0" inputmode="decimal" value="${m?.budget || ''}">
     <div class="gap"></div><button class="btn" id="mfSave">บันทึก</button>`);

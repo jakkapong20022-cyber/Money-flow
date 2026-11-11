@@ -216,3 +216,33 @@ nav.bn .plus b .ico{width:26px;height:26px;stroke-width:2.4}
 .card.set{background:linear-gradient(180deg,#141a26,#10151f);border-color:#ffffff14}
 .subsec{display:flex;align-items:center;gap:8px;font-size:13px!important;color:#cfd8e6;margin-top:16px}
 .subsec .ico{width:16px;height:16px;color:var(--green)}
+
+/* ---------- unified icon style B: soft colour tiles ---------- */
+.tl{--s:38px;display:inline-grid;place-items:center;width:var(--s);height:var(--s);border-radius:11px;background:color-mix(in srgb,var(--c,#3d8bff) 18%,#0d1118);color:var(--c,#3d8bff);flex:none;font-style:normal}
+.tl .ico{width:54%;height:54%}
+.tl b{font-size:calc(var(--s) * .5);font-weight:400}
+.tl.sm{--s:28px;border-radius:9px;--c:var(--green)}
+.tl.rd{border-radius:50%}
+.ico.inl{display:inline-block;width:1.1em;height:1.1em;vertical-align:-.2em;margin:0 .08em}
+.tx .tl{--s:40px}
+.cat>.hd .tl{--s:36px}
+.tx .ti{display:none}
+.ph .ico{opacity:1}
+.av i{background:color-mix(in srgb,var(--c) 18%,#0d1118);border:2px solid transparent;box-shadow:none;color:var(--c)}
+.av i .ico{width:52%;height:52%}
+.av.sel i{border-color:var(--c);box-shadow:none;transform:scale(1.06)}
+.mini{color:var(--c,var(--green));background:color-mix(in srgb,var(--c,#2ee59d) 18%,#0d1118)}
+.mini .ico{width:60%;height:60%}
+.logo{background:color-mix(in srgb,var(--green) 18%,#0d1118);box-shadow:none;color:var(--green)}
+.logo .ico{width:58%;height:58%}
+.scan .cam{box-shadow:none;color:#fff}
+.scan .cam .ico{width:22px;height:22px}
+.ib{display:inline-grid;place-items:center;color:var(--mut)}
+.ib .ico.inl{width:17px;height:17px;margin:0;vertical-align:0}
+.emojis button{display:inline-grid;place-items:center;padding:0;background:transparent;border:2px solid transparent;border-radius:12px;width:46px;height:46px}
+.emojis button.on{border-color:var(--green);box-shadow:none}
+.emojis .tl{--s:36px}
+.gc .arr .ico{width:56px;height:56px}
+.dcal .ico.inl,.btn .ico.inl,.chip .ico.inl{margin:0 .15em 0 0}
+.dcal .ico.inl{width:19px;height:19px;margin:0;vertical-align:0}
+.back .ico{width:18px;height:18px}
