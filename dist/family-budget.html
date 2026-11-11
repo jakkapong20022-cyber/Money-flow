@@ -249,6 +249,7 @@ nav.bn .plus b .ico{width:26px;height:26px;stroke-width:2.4}
 .dcal .ico.inl,.btn .ico.inl,.chip .ico.inl{margin:0 .15em 0 0}
 .dcal .ico.inl{width:19px;height:19px;margin:0;vertical-align:0}
 .back .ico{width:18px;height:18px}
+.amount.warn,.i.warn{border-color:var(--orange)!important;box-shadow:0 0 0 2px color-mix(in srgb,var(--orange) 35%,transparent)}
 </style></head><body><div id="app"></div>
 <script>(function(){const defs={'./store':function(module,exports,require){
 const KEY='family-budget-v1'; const empty=()=>({users:[],sessions:{},families:[],members:[],categories:[],transactions:[],debts:[]});
@@ -1129,10 +1130,10 @@ V.add = async () => {
   <div class="sec">ใครเป็นคนบันทึก?</div>${avatars(a.memberId, 'addmember')}
   <div class="seg ${a.type === 'expense' ? 'exp' : 'inc'}"><button class="${a.type === 'expense' ? 'on' : ''}" data-act="addtype" data-t="expense">รายจ่าย</button><button class="${a.type === 'income' ? 'on' : ''}" data-act="addtype" data-t="income">รายรับ</button></div>
   <div class="sec">จำนวนเงิน</div>
-  <div class="amount ${a.type === 'expense' ? 'red' : ''}" id="amt">${amtText()}</div>
+  <div class="amount ${a.type === 'expense' ? 'red' : ''} ${a.warn?.amount ? 'warn' : ''}" id="amt">${amtText()}</div>
   <div class="keys">${['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0', '⌫'].map(k => `<button data-act="key" data-k="${k}">${k}</button>`).join('')}</div>
   <label class="f">หมวดหมู่</label>
-  <select class="i" id="addMain">${mains(a.type).map(c => `<option value="${c.id}" ${a.main === c.id ? 'selected' : ''}>${esc(c.icon)} ${esc(c.name)}</option>`).join('')}</select>
+  <select class="i ${a.warn?.cat ? 'warn' : ''}" id="addMain">${mains(a.type).map(c => `<option value="${c.id}" ${a.main === c.id ? 'selected' : ''}>${esc(c.icon)} ${esc(c.name)}</option>`).join('')}</select>
   <div class="chips" id="subChips">${subChips()}</div>
   <label class="f">วันที่</label>${dateField('addDate', a.date)}
   <label class="f">บันทึกช่วยจำ</label><textarea class="i" id="addNote" placeholder="เช่น ซื้อของสดที่โลตัส">${esc(a.note)}</textarea>
@@ -1141,7 +1142,7 @@ V.add = async () => {
 };
 const subChips = () => { const a = S.add; const sl = subs(a.main); return sl.length ? `<button class="chip ${!a.sub ? 'on' : ''}" data-act="subpick" data-id="">ทั่วไป</button>` + sl.map(c => `<button class="chip ${a.sub === c.id ? 'on' : ''}" data-act="subpick" data-id="${c.id}">${esc(c.name)}</button>`).join('') : ''; };
 AFTER.add = () => {
-  $('#addMain')?.addEventListener('change', e => { S.add.main = e.target.value; S.add.sub = ''; $('#subChips').innerHTML = subChips(); });
+  $('#addMain')?.addEventListener('change', e => { if (S.add.warn) S.add.warn.cat = false; e.target.classList.remove('warn'); S.add.main = e.target.value; S.add.sub = ''; $('#subChips').innerHTML = subChips(); });
   $('#addDate')?.addEventListener('change', e => { const iso = parseDMY(e.target.value); if (iso) S.add.date = iso; else toast(BADDATE, 'err'); });
   $('#addNote')?.addEventListener('input', e => S.add.note = e.target.value);
   $('#slipFile')?.addEventListener('change', guard(scanFile));
@@ -1169,7 +1170,12 @@ async function scanFile(e) {
     a.slip = r.duplicate ? null : { bank: r.bank, sender: r.sender, receiver: r.receiver, ref: r.ref, time: r.time, memo: r.memo };
     const c = S.cats.find(x => x.id === r.categoryId);
     if (c) { a.main = c.parentId || c.id; a.sub = c.parentId ? c.id : ''; }
-    autoCat(); await render(); if (!r.duplicate) toast(`✓ สแกนสำเร็จ ${cur()}${fmt(r.amount)} — ตรวจสอบแล้วกดบันทึก`, 'good');
+    a.warn = { amount: !!r.amountUncertain, cat: !!r.categoryUncertain };
+    autoCat(); await render();
+    if (!r.duplicate) {
+      const bad = [a.warn.amount && 'จำนวนเงิน', a.warn.cat && 'หมวดหมู่'].filter(Boolean);
+      toast(bad.length ? `อ่านได้ ${cur()}${fmt(r.amount)} แต่ไม่แน่ใจ${bad.join('และ')} — ตรวจสอบช่องที่เตือนก่อนบันทึก` : `✓ สแกนสำเร็จ ${cur()}${fmt(r.amount)} — ตรวจสอบแล้วกดบันทึก`, bad.length ? 'err' : 'good');
+    }
   } catch (err) { btn.innerHTML = old; toast(err.message, 'err'); }
 }
 const saveTx = guard(async (again) => {
@@ -1387,7 +1393,7 @@ const A = {
     if (k === '⌫') v = v.slice(0, -1);
     else if (k === '.') { if (!v.includes('.')) v = (v || '0') + '.'; }
     else { if (v.includes('.') && v.split('.')[1].length >= 2) return; if (v.replace('.', '').length >= 10) return; v = v === '0' ? k : v + k; }
-    a.amt = v; $('#amt').textContent = amtText(); },
+    a.amt = v; if (a.warn) a.warn.amount = false; $('#amt').classList.remove('warn'); $('#amt').textContent = amtText(); },
   subpick: (el) => { S.add.sub = el.dataset.id; $('#subChips').innerHTML = subChips(); },
   scan: () => $('#slipFile').click(),
   save: (el) => saveTx(el.dataset.again === '1'),

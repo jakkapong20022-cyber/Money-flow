@@ -246,3 +246,4 @@ nav.bn .plus b .ico{width:26px;height:26px;stroke-width:2.4}
 .dcal .ico.inl,.btn .ico.inl,.chip .ico.inl{margin:0 .15em 0 0}
 .dcal .ico.inl{width:19px;height:19px;margin:0;vertical-align:0}
 .back .ico{width:18px;height:18px}
+.amount.warn,.i.warn{border-color:var(--orange)!important;box-shadow:0 0 0 2px color-mix(in srgb,var(--orange) 35%,transparent)}

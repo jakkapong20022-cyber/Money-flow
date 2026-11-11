@@ -210,6 +210,19 @@ const lastReply = () => { const o = line.outbox; return (m => m?.text || m?.altT
     ok(calls[1].init.headers.authorization === 'Bearer o-key' && /^data:image\/png;base64,/.test(calls[1].body.messages[0].content[1].image_url.url) && calls[1].body.response_format.type === 'json_object', 'GPT request shape');
     calls.length = 0; slipLib.__setFetch(fakeFetch(u => /generativelanguage/.test(u) ? { candidates: [{ content: { parts: [{ text: '{"is_slip":true,"amount":null}' }] } }] } : reply(u)));
     r = await slipLib.scanSlip(Buffer.from('x'), 'image/jpeg', cats); ok(r.provider === 'openai' && r.amount === 1234.5, 'no amount from first provider → next one tries');
+    // quality fallback: first provider reads the amount but a category outside the list, or is unsure → next provider
+    delete process.env.OCR_PROVIDER; const mk = (o) => ({ ...good, ...o });
+    const byUrl = (g, o, c) => (u) => /generativelanguage/.test(u) ? { candidates: [{ content: { parts: [{ text: JSON.stringify(g) }] } }] } : /openai/.test(u) ? { choices: [{ message: { content: JSON.stringify(o) } }] } : { content: [{ text: JSON.stringify(c) }] };
+    calls.length = 0; slipLib.__setFetch(fakeFetch(byUrl(mk({ category: 'ของแปลก' }), good, good)));
+    r = await slipLib.scanSlip(Buffer.from('x'), 'image/jpeg', cats);
+    ok(r.provider === 'openai' && r.category === 'อาหารและเครื่องดื่ม' && !r.categoryUncertain && !r.amountUncertain, 'bad category from first AI → retried with next AI');
+    calls.length = 0; slipLib.__setFetch(fakeFetch(byUrl(mk({ confidence: 'low', amount: 999 }), mk({ amount_text: '1,234.50', amount: 123450 }), mk({ confidence: 'low', amount: 888 }))));
+    r = await slipLib.scanSlip(Buffer.from('x'), 'image/jpeg', cats);
+    ok(r.amountUncertain === true && calls.length === slipLib.providers().length, 'all AIs unsure about amount → flagged uncertain after trying all');
+    slipLib.__setFetch(fakeFetch(byUrl(mk({ category: 'x' }), mk({ category: 'y' }), mk({ category: 'z' }))));
+    r = await slipLib.scanSlip(Buffer.from('x'), 'image/jpeg', cats); ok(r.categoryUncertain === true && r.amount === 1234.5 && !r.amountUncertain, 'no valid category anywhere → category flagged, amount kept');
+    slipLib.__setFetch(fakeFetch(byUrl(mk({ confidence: 'low' }), mk({ confidence: 'low' }), mk({ confidence: 'low' }))));
+    r = await slipLib.scanSlip(Buffer.from('x'), 'image/jpeg', cats); ok(!r.amountUncertain, 'two AIs agree on same amount → confirmed');
     process.env.OCR_PROVIDER = 'openai,gemini'; ok(slipLib.providers().join() === 'openai,gemini', 'OCR_PROVIDER sets order');
     process.env.ANTHROPIC_API_KEY = 'a-key'; process.env.OCR_PROVIDER = '';
     ok(slipLib.providerInfo().map(x => x.label).join() === 'Claude,Gemini,GPT', 'all three listed');

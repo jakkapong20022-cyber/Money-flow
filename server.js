@@ -290,7 +290,7 @@ async function api(req, res, url) {
     const r = await scanSlip(buf, mt, { expense: names('expense'), income: names('income') });
     const cat = core.guessCategory(f.id, r.type, [r.category, r.receiver, r.memo].filter(Boolean).join(' '));
     const dup = !!(r.ref && core.famTx(f.id).some(t => t.slipRef === r.ref));
-    return json(res, 200, { ...r, categoryId: cat?.id, duplicate: dup, note: [r.receiver, r.memo].filter(Boolean).join(' · ').slice(0, 120) });
+    return json(res, 200, { ...r, categoryId: cat?.id, categoryUncertain: r.categoryUncertain || !cat, duplicate: dup, note: [r.receiver, r.memo].filter(Boolean).join(' · ').slice(0, 120) });
   }
 
   // LINE helpers
